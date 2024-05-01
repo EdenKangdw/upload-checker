@@ -13,7 +13,7 @@ from database.query import (
     get_user,
     get_users,
     get_channel_with_code,
-    get_channel_checks
+    get_channel_checks,
 )
 from util.auth import get_current_user
 from database.conn import engineconn, db
@@ -109,7 +109,7 @@ async def kakao_user_login_api(
     CLOUD_CLIENT_REDIRECT_URL = (
         "https://web-upload-checker-temp-28f9s2blqx7tnkg.sel5.cloudtype.app/main"
     )
-    return RedirectResponse(url=f"{CLOUD_CLIENT_REDIRECT_URL}?access_token={token}")
+    return RedirectResponse(url=f"{LOCAL_CLIENT_REDIRECT_URL}?access_token={token}")
 
 
 @app.post("/channel", status_code=200)
@@ -303,6 +303,7 @@ async def dummy_check(
 @app.get("/user/list", status_code=200)
 async def user_list_api(session: Session = Depends(db.session)):
     return get_users(session)
+
 
 @app.get("/user/check", status_code=200)
 async def user_check(
