@@ -328,20 +328,25 @@ async def get_check_channel_api(
     return channel_check_list
 
 
-@app.get("/channel")
-async def get_channel_api(
+@app.post("/channel/join")
+async def post_channel_join(
     channel_code=Query(description="채널 코드", default=""),
     token: HTTPBearer = Depends(oauth2_scheme),
     session: Session = Depends(db.session),
 ):
     """
-    채널 코드를 통해 채널 정보를 받은 후, 들어갑니다.
+    채널 코드를 통해 채널 정보를 받은 후, 채널에 가입합니다.
     """
     # user check
     user = await get_current_user(token)
 
     # get channel with code
     channel = await get_channel_with_code(session, channel_code)
+    if not channel:
+        return JSONResponse(
+            {"error": "채널코드에 해당하는 채널을 찾을 수 없습니다"},
+            status_code=500,
+        )
     user_channel = UserChannel(user_id=user.user_id, channel_id=channel.channel_id)
 
     # join channel
