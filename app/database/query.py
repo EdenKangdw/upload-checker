@@ -192,7 +192,7 @@ async def get_channel_with_code(session, channel_code):
 
     except Exception as e:
         print(e)
-        None
+        return None
 
 
 ################################################################
