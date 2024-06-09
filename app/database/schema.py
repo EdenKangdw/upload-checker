@@ -7,6 +7,8 @@ class User(Base):
 
     user_id = Column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
     user_name = Column(String(30), nullable=False)
+    user_nickname = Column(String(30), nullable=True)
+
 
 class Group(Base):
     __tablename__ = "group"
@@ -38,7 +40,7 @@ class Channel(Base):
 
 
 class UserChannel(Base):
-    __tablename__ = "user_channel"
+    __tablename__ = "user__channel"
 
     user_channel_id = Column(
         INTEGER, primary_key=True, nullable=False, autoincrement=True
@@ -55,5 +57,6 @@ class Check(Base):
     check_id = Column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
     check_channel_id = Column(INTEGER, nullable=False)
     check_user_id = Column(INTEGER, nullable=False)
+    checked_at = Column(DateTime, default=func.current_timestamp(), nullable=False)
     updated_at = Column(DateTime, default=func.current_timestamp())
     created_at = Column(DateTime, default=func.current_timestamp())

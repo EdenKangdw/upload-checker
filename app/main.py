@@ -21,10 +21,12 @@ from database.query import (
     get_user_checks_channel,
     add_user,
     get_user,
+    get_user_with_id,
     get_users,
     get_channel_with_code,
     get_channel_checks,
     update_group_user,
+    update_user_nickname,
 )
 from util.auth import get_current_user
 from database.conn import engineconn, db
@@ -84,9 +86,52 @@ async def user_api(
     token: HTTPBearer = Depends(oauth2_scheme),
     session: Session = Depends(db.session),
 ):
+    """
+    현재 로그인 되어 있는 유저의 정보를 token 기반하여 return 합니다.
+    """
     # get user info
     user = await get_current_user(token)
     return user
+
+
+@app.post("/user")
+async def post_user(
+    update_user: UpdateUserModel,
+    token: HTTPBearer = Depends(oauth2_scheme),
+    session: Session = Depends(db.session),
+):
+    """
+    유저 정보를 업데이트 합니다. 각각의 정보는 optional 하기 때문에, 1개만 있어도 상관없습니다.
+    - nickname : 유저 닉네임
+    - group_id : 유저 소속팀 아이디
+    """
+    # get user info
+    user = await get_current_user(token)
+
+    # update user nickname
+    if update_user.nickname:
+        update_user_result = update_user_nickname(
+            session, user.user_id, update_user.nickname
+        )
+        if not update_user_result:
+            return JSONResponse({"error": "fail to update user"}, status_code=500)
+
+    # add user group
+    if update_user.group_id:
+        group_user = GroupUser(
+            user_id=user.user_id,
+            group_id=update_user.group_id,
+        )
+        add_group_user_result = add_group_user(session, group_user)
+        if not add_group_user_result:
+            return JSONResponse({"error": "fail to add group user"}, status_code=500)
+
+    # get updated user
+    updated_user = get_user_with_id(session, user.user_id)
+    if not updated_user:
+        return JSONResponse({"error": "fail to get user"}, status_code=500)
+
+    return updated_user
 
 
 @app.post("/group")

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from database.conn import engineconn, db
-from database.schema import User, Channel, Check, UserChannel
+from database.schema import Group, GroupUser, User, Channel, Check, UserChannel
 from sqlalchemy import cast, Date
 from sqlalchemy.orm import Session
 
@@ -16,7 +16,15 @@ def get_user(session: Session, username):
         return None
 
 
-def get_users(session):
+def get_user_with_id(session: Session, user_id):
+    try:
+        return session.query(User).filter(User.user_id == user_id).first()
+    except Exception as e:
+        print(e)
+        return None
+
+
+def get_users(session: Session):
     try:
         return session.query(User).all()
     except Exception as e:
@@ -24,10 +32,29 @@ def get_users(session):
         return None
 
 
-def add_user(session, user):
+def add_user(session: Session, user):
     try:
         session.add(user)
         session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        session.rollback()
+        return None
+
+
+def update_user_nickname(session: Session, user_id, user_nickname):
+
+    try:
+        user = session.query(User).filter(User.user_id == user_id).first()
+        user.user_nickname = user_nickname
+        session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        session.rollback()
+        return None
+
 
 ################################################################
 # Group
@@ -146,7 +173,7 @@ async def get_channel_with_name(session, creator_id, channel_name):
         None
 
 
-async def get_channel(session, channel_id):
+async def get_channel(session, channel_id) -> Channel:
     try:
         data = session.query(Channel).filter(Channel.channel_id == channel_id).first()
         return data
