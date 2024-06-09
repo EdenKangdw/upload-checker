@@ -296,6 +296,8 @@ async def get_check_channel_api(
     user = await get_current_user(token)
     print("user: %s" % user.user_id)
 
+    # check group leader
+
     # check channel creator
     # channel = await get_channel(session, channel_id)
     # print("channel: %s" % channel.channel_creator_id, channel.channel_id)
@@ -415,7 +417,7 @@ async def dummy_check(
     add_check(session, check)
 
     # get check
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now()
     check_result = get_check(session, user_id, channel_id, today)
 
     return check_result
@@ -423,6 +425,9 @@ async def dummy_check(
 
 @app.get("/user/list", status_code=200)
 async def user_list_api(session: Session = Depends(db.session)):
+    """
+    서버에 존재하는 유저 정보를 모두 return 합니다.
+    """
     return get_users(session)
 
 
@@ -434,6 +439,9 @@ async def user_check(
     start_date=Query(default="", description="체크기준 시작날짜(KST)"),
     end_date=Query(default="", description="체크기준 종료날짜(KST)"),
 ):
+    """
+    로그인 한 유저가 특정 채널에 대해 출석한 기록을 return 합니다.
+    """
     result = []
 
     # user check
