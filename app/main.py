@@ -355,6 +355,24 @@ async def post_channel_join(
     return dict(channel=channel)
 
 
+@app.get("/channel")
+async def get_channel_api(
+    channel_id: int = Query(description="채널 아이디", default=1),
+    token: HTTPBearer = Depends(oauth2_scheme),
+    session: Session = Depends(db.session),
+):
+    """
+    채널 아이디를 통해 채널 정보를 얻습니다. 채널 입장에 사용합니다.
+    """
+    # user check
+    user = await get_current_user(token)
+
+    # get channel with code
+    channel = await get_channel(session, channel_id)
+
+    return dict(channel=channel)
+
+
 @app.post("/dummy/user", status_code=200)
 async def dummy_user(user_name: str, session: Session = Depends(db.session)):
     """
