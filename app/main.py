@@ -376,17 +376,25 @@ async def get_channel_api(
 @app.post("/dummy/user", status_code=200)
 async def dummy_user(user_name: str, session: Session = Depends(db.session)):
     """
-    dummy 유저를 생성합니다.
+    dummy 유저를 생성한 후 token을 return 합니다.
     """
 
     # add dummy user
     user = User(user_name=user_name)
-    add_user(session, user)
+    add_user_result = add_user(session, user)
+    if not add_user_result:
+        return JSONResponse({"error": "Can't add user"}, status_code=500)
 
     # get user
     user_result = get_user(session, user_name)
+    if not user_result:
+        return JSONResponse({"error": "User not found"}, status_code=500)
 
-    return user_result
+    # TODO : 더미 유저 생성 후, token도 같이 return
+    # get dummy user' token
+    token = encode_token(user_name)
+
+    return token
 
 
 @app.post("/dummy/check", status_code=200)
