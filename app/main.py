@@ -223,28 +223,36 @@ async def post_channel_api(
 
 @app.post("/check", status_code=200)
 async def post_check_api(
-    params: CheckModel,
+    channel_id: int = Body(..., description="채널 아이디"),
+    checked_at: Optional[str] = Body(description="체크한 target date", default=None),
     token: HTTPBearer = Depends(oauth2_scheme),
     session: Session = Depends(db.session),
 ):
     """
     출석하고자 하는 채널의 아이디를 받고 출석체크를 한 뒤, 출석 정보를 return 합니다.
     """
-    input = params.dict()
 
     # check user
     user = await get_current_user(token)
 
-    # check
-    check = Check(
-        check_channel_id=input.get("channel_id"),
-        check_user_id=user.user_id,
+    # check date
+    checked_at = (
+        datetime.strptime(checked_at, "%Y-%m-%d") if checked_at else datetime.now()
     )
 
-    add_check(session, check)
+    # check
+    check = Check(
+        check_channel_id=channel_id,
+        check_user_id=user.user_id,
+        checked_at=checked_at,
+    )
+
+    added_check = add_check(session, check)
+    if not added_check:
+        return JSONResponse({"error": "duplicated check"}, status_code=500)
 
     # get check
-    check_result = get_check(session, user.user_id, input.get("channel_id"))
+    check_result = get_check(session, user.user_id, channel_id, checked_at)
 
     return check_result
 
@@ -252,6 +260,7 @@ async def post_check_api(
 @app.get("/check", status_code=200)
 async def get_check_api(
     channel_id: int = Query(default=0),
+    checked_at: str = Query(default=None),
     token: HTTPBearer = Depends(oauth2_scheme),
     session: Session = Depends(db.session),
 ):
@@ -262,12 +271,10 @@ async def get_check_api(
     user = await get_current_user(token)
 
     # get current_date check
-    current_date_str = datetime.now().strftime("%Y-%m-%d")
+    # TODO : 체크 이력을 checked_at에서 가져오도록 처리
+    checked_at = checked_at if checked_at else datetime.now().strftime("%Y-%m-%d")
     check_result = get_check(
-        session,
-        channel_id=channel_id,
-        user_id=user.user_id,
-        created_at=current_date_str,
+        session, channel_id=channel_id, user_id=user.user_id, checked_at=checked_at
     )
 
     return check_result
