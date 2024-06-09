@@ -200,36 +200,40 @@ async def get_channel_with_code(session, channel_code):
 ################################################################
 
 
-def add_check(session, check):
-    session.add(check)
-    session.commit()
-    return None
-    # try:
-    #     current_datetime_str = datetime.now().strftime("%Y-%m-%d")
-    #     check = (
-    #         session.query(Check)
-    #         .filter(Check.check_channel_id == check.check_channel_id)
-    #         .filter(Check.check_user_id == check.check_user_id)
-    #         .filter(cast(Check.created_at, Date) == current_datetime_str)
-    #     )
-    #     # 중복이 아닌 경우에만 출석체크
-    #     if not check:
-    #         session.add(check)
-    #         session.commit()
-    # except Exception as e:
-    #     print(e)
-    #     session.rollback()
-    #     return None
-
-
-def get_check(session, user_id, channel_id, created_at=None):
+def add_check(session, check: Check):
     try:
-        if created_at:
+        target_date_time: datetime = check.checked_at
+        target_date_time_str: str = datetime.strftime(target_date_time, "%Y-%m-%d")
+        current_check = (
+            session.query(Check)
+            .filter(Check.check_channel_id == check.check_channel_id)
+            .filter(Check.check_user_id == check.check_user_id)
+            .filter(cast(Check.checked_at, Date) == target_date_time_str)
+            .first()
+        )
+        # 중복이 아닌 경우에만 출석체크
+        if not current_check:
+            session.add(check)
+            session.commit()
+            return check
+    except Exception as e:
+        print(e)
+        session.rollback()
+        return None
+    return False
+
+
+def get_check(session, user_id, channel_id, checked_at=None):
+    try:
+
+        if checked_at:
+            checked_at = datetime.strftime(checked_at, "%Y-%m-%d")
+
             data = (
                 session.query(Check)
                 .filter(Check.check_user_id == user_id)
                 .filter(Check.check_channel_id == channel_id)
-                .filter(cast(Check.created_at, Date) == created_at)
+                .filter(cast(Check.checked_at, Date) == checked_at)
                 .first()
             )
             return data
