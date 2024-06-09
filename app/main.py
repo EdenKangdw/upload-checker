@@ -1,14 +1,22 @@
 from datetime import datetime, timedelta
-from typing import Annotated, Union
+from typing import Annotated, Optional, Union
 from fastapi import Body, Depends, FastAPI, Query, Request
-from api_model.model import ChannelModel, CheckModel
+from api_model.model import (
+    ChannelModel,
+    GroupModel,
+    UpdateGroupUserModel,
+    UpdateUserModel,
+)
 from database.query import (
     add_channel,
+    add_group,
+    add_group_user,
     add_user_channel,
     get_channel,
     get_channel_with_name,
     add_check,
     get_check,
+    get_groups,
     get_user_channels,
     get_user_checks_channel,
     add_user,
@@ -16,17 +24,18 @@ from database.query import (
     get_users,
     get_channel_with_code,
     get_channel_checks,
+    update_group_user,
 )
 from util.auth import get_current_user
 from database.conn import engineconn, db
 from database.base import Base
-from database.schema import User, Channel, Check, UserChannel
+from database.schema import Group, GroupUser, User, Channel, Check, UserChannel
 from config import Config
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, HTTPBearer
 from util.oauth import kakao_login, kakao_token
 from util.auth import create_access_token, encode_token
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -78,6 +87,31 @@ async def user_api(
     # get user info
     user = await get_current_user(token)
     return user
+
+
+@app.post("/group")
+async def post_group(
+    group: GroupModel,
+    token: HTTPBearer = Depends(oauth2_scheme),
+    session: Session = Depends(db.session),
+):
+    """
+    그룹을 생성합니다.
+    """
+    # get user info
+    user = await get_current_user(token)
+
+    # add group
+    group = Group(
+        group_name=group.name,
+    )
+
+    # add group user
+    added_group = add_group(session, group)
+    if not added_group:
+        return JSONResponse({"error": "Could not add group"}, status_code=500)
+
+    return added_group
 
 
 @app.get("/oauth/kakao/redirect", status_code=200)
@@ -364,3 +398,44 @@ async def get_user_channel(
     user_channels = get_user_channels(session, user.user_id)
 
     return user_channels
+
+
+@app.get("/group/list", status_code=200)
+async def get_group_list(
+    session: Session = Depends(db.session), token: HTTPBearer = Depends(oauth2_scheme)
+):
+    """
+    전체 팀 목록을 return 합니다.
+    """
+    # user check
+    user = await get_current_user(token)
+
+    # get group list
+    group_list = get_groups(session)
+    if not group_list:
+        return JSONResponse({"error": "cannot get groups"}, status_code=500)
+
+    return group_list
+
+
+@app.post("/group/user")
+async def post_group_user(
+    group_user: UpdateGroupUserModel,
+    session: Session = Depends(db.session),
+    token: HTTPBearer = Depends(oauth2_scheme),
+):
+    """
+    팀 내에서 유저 정보를 업데이트 합니다.
+    - type : LEADER, MEMBER
+    """
+    # user check
+    user = await get_current_user(token)
+
+    # update group user
+    update_group_user_result = update_group_user(
+        session, group_user.group_id, user.user_id, group_user.type
+    )
+    if not update_group_user_result:
+        return JSONResponse({"error": "can't update group_user"}, status_code=500)
+
+    return True

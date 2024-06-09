@@ -28,6 +28,67 @@ def add_user(session, user):
     try:
         session.add(user)
         session.commit()
+
+################################################################
+# Group
+################################################################
+
+
+def add_group(session: Session, group):
+    try:
+        session.add(group)
+        session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        session.rollback()
+        return None
+
+
+def get_groups(session: Session):
+    try:
+        return session.query(Group).all()
+    except Exception as e:
+        print(e)
+        return None
+
+
+################################################################
+# GroupUser
+################################################################
+
+
+def add_group_user(session: Session, group_user):
+    try:
+        checked_group_user = (
+            session.query(GroupUser)
+            .filter(GroupUser.user_id == group_user.user_id)
+            .filter(GroupUser.group_id == group_user.group_id)
+            .first()
+        )
+        # 중복이 아닐 경우만
+        if not checked_group_user:
+            session.add(group_user)
+            session.commit()
+            return True
+    except Exception as e:
+        print(e)
+        session.rollback()
+        return None
+    return False
+
+
+def update_group_user(session: Session, user_id, group_id, user_type: str):
+    try:
+        group_user = (
+            session.query(GroupUser)
+            .filter(GroupUser.user_id == user_id)
+            .filter(GroupUser.group_id == group_id)
+            .first()
+        )
+        group_user.type = user_type
+        session.commit()
+        return True
     except Exception as e:
         print(e)
         session.rollback()

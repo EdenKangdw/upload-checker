@@ -8,6 +8,21 @@ class User(Base):
     user_id = Column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
     user_name = Column(String(30), nullable=False)
 
+class Group(Base):
+    __tablename__ = "group"
+
+    group_id = Column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
+    group_name = Column(String(30), nullable=False)
+
+
+class GroupUser(Base):
+    __tablename__ = "group__user"
+
+    id = Column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
+    group_id = Column(INTEGER, nullable=False)
+    user_id = Column(INTEGER, nullable=False)
+    type = Column(String(30), nullable=False, default="MEMBER")
+
 
 class Channel(Base):
     __tablename__ = "channel"
