@@ -616,7 +616,7 @@ async def post_group_user(
 
     # update group user
     update_group_user_result = update_group_user(
-        session, group_user.group_id, user.user_id, group_user.type
+        session, user.user_id, group_user.group_id, group_user.type
     )
     if not update_group_user_result:
         return JSONResponse({"error": "can't update group_user"}, status_code=500)
