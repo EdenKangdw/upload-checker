@@ -215,7 +215,10 @@ async def post_channel_api(
     )
     add_channel_result = add_channel(session, channel)
     if not add_channel_result:
-        return JSONResponse({"error": "Can't add channel"}, status_code=500)
+        return JSONResponse(
+            {"error": "이미 존재하는 code 입니다. 다른 code를 사용해주세요"},
+            status_code=500,
+        )
 
     # add user channel
     user_channel = UserChannel(
