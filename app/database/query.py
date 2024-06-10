@@ -246,7 +246,7 @@ def add_check(session, check: Check):
         if not current_check:
             session.add(check)
             session.commit()
-            return check
+        return check
     except Exception as e:
         print(e)
         session.rollback()
