@@ -430,13 +430,15 @@ async def get_check_channel_api(
 
 @app.post("/channel/join", tags=["Channel"])
 async def post_channel_join(
-    channel_code=Query(description="채널 코드", default=""),
+    channel_code: str = Body(..., description="채널 코드"),
+    dummy: str = Body(description="body 만들기용 데이터", default=None),
     token: HTTPBearer = Depends(oauth2_scheme),
     session: Session = Depends(db.session),
 ):
     """
     채널 코드를 통해 채널 정보를 받은 후, 채널에 가입합니다.
     """
+
     # user check
     user = await get_current_user(token)
 
