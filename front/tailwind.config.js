@@ -45,6 +45,9 @@ module.exports = {
         sm: "640px",
         md: "768px",
       },
+      content: {
+        'plusIcon': 'url("../src/assets/images/icon/ico-plus.svg")',
+      },
     },
   },
 };

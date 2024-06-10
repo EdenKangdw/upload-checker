@@ -21,7 +21,7 @@ export default function Lobby() {
   const postJoinChannel = async () => {
     try {
       await instance.post("/channel/join", {
-        params: { channel_code: channelCode },
+        channel_code: channelCode,
       }).then(res => {
         console.log('res', res)
         // if(!res.data.channel) { 
@@ -70,10 +70,9 @@ export default function Lobby() {
     <div className="wrapper items-start justify-start">
       <div className="w-full flex justify-between items-center">
         <p className="text-[#3A4D39]"><em className="font-bold text-3xl">{user_nickname || user_name}</em> 님</p>
-        <button className="w-8 rounded-full bg-button-3 hover:bg-button-2" type="button" onClick={() => navigate("/channel/create")}>
-          <img src={PlusIcon} alt="채널 만들기" /> 채널 생성
+        <button className="button before:content-plusIcon before:inline-block before:w-6 before:align-middle" type="button" onClick={() => navigate("/channel/create")}>
+          채널 생성
         </button>
-        {/* <p className="mt-2">채널 만들기</p> */}
       </div>
 
       <div className="w-full mt-8">
