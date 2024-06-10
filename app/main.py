@@ -191,7 +191,7 @@ async def kakao_user_login_api(
     return RedirectResponse(url=f"{CLIENT_REDIRECT_URL}?access_token={token}")
 
 
-@app.post("/channel", status_code=200)
+@app.post("/channel", status_code=200, tags=["Channel"])
 async def post_channel_api(
     params: ChannelModel,
     token: HTTPBearer = Depends(oauth2_scheme),
@@ -212,7 +212,19 @@ async def post_channel_api(
         channel_creator_id=user.user_id,
         channel_check_type=input.get("check_type"),
     )
-    add_channel(session, channel)
+    add_channel_result = add_channel(session, channel)
+    if not add_channel_result:
+        return JSONResponse({"error": "Can't add channel"}, status_code=500)
+    
+    # add user channel
+    user_channel = UserChannel(
+        user_id=user.user_id,
+        channel_id=channel.channel_id,
+        type="CREATOR",
+    )
+    add_user_channel(session, user_channel)
+    if not add_user_channel:
+        return JSONResponse({"error": "Can't add user channel"}, status_code=500)
 
     # get channel
     channel_result = await get_channel_with_name(
@@ -220,8 +232,87 @@ async def post_channel_api(
     )
     return channel_result
 
+@app.get('/channel/user', status_code=200, tags=['Channel'])
+async def get_channel_user(
+    channel_id: int = Query(default=0),
+    session: Session = Depends(db.session),
+    token: HTTPBearer = Depends(oauth2_scheme),
+):
+    """
+    채널 내 유저 정보를 return 합니다.
+    - isManager : 채널 매니저 여부
+    - isCreator : 채널 생성자 여부
+    """
+    # user check
+    user = await get_current_user(token)
 
-@app.post("/check", status_code=200)
+    # get channel users
+    channel_user = get_user_channel_info(session, channel_id, user.user_id)
+    if not channel_user:
+        return JSONResponse({"error": "Can't get channel user"}, status_code=500)
+    
+    # set user type option
+    result = {
+        'user_id': user.user_id,
+        'channel_id': channel_id,
+        'isManager': False,
+        'isCreator': False,
+    }
+    result['isManager'] = True if channel_user.type in ['MANAGER', 'CREATOR'] else False
+    result['isCreator'] = True if channel_user.type == 'CREATOR' else False
+    return result
+
+@app.get('/channel/user/type', status_code=200, tags=['Channel'])
+async def get_channel_user(
+    channel_id: int = Query(default=0),
+    session: Session = Depends(db.session),
+    token: HTTPBearer = Depends(oauth2_scheme),
+):
+    """
+    선택할 수 있는 채널 내 유저 타입 목록을 return 합니다.
+    """
+    # user check
+    user = await get_current_user(token)
+
+    result = [
+        {'type': 'MANAGER', 'name': '관리자'},
+        {'type': 'MEMBER', 'name': '멤버'},
+    ]
+    return result
+
+@app.post('/channel/user', status_code=200, tags=['Channel'])
+async def post_channel_user_api(
+    channel_id: int = Body(..., description="채널 아이디"),
+    user_id: int = Body(..., description="유저 아이디"),
+    type: str = Body(..., description="유저 타입(MANAGER, MEMBER)"),
+    token: HTTPBearer = Depends(oauth2_scheme),
+    session: Session = Depends(db.session),
+):
+    """
+    채널 내 유저 정보를 업데이트 합니다.
+    - MEMBER : 일반 유저
+    - MANAGER : 매니저
+    """
+    # user check
+    user = await get_current_user(token)
+    
+    # check is creator
+    user_channel = get_user_channel_info(session, channel_id, user.user_id)
+    if not user_channel:
+        return JSONResponse({"error": "Can't get channel user"}, status_code=500)
+    if user_channel.type != 'CREATOR':
+        return JSONResponse({"error": "You are not creator"}, status_code=500)
+    
+    # update group user
+    update_group_user_result = update_group_user(
+        session, channel_id, user.user_id, type
+    )
+    if not update_group_user_result:
+        return JSONResponse({"error": "can't update group_user"}, status_code=500)
+
+    return True
+
+
 async def post_check_api(
     channel_id: int = Body(..., description="채널 아이디"),
     checked_at: Optional[str] = Body(description="체크한 target date", default=None),

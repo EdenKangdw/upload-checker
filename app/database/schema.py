@@ -47,6 +47,7 @@ class UserChannel(Base):
     )
     channel_id = Column(INTEGER, nullable=False)
     user_id = Column(INTEGER, nullable=False)
+    user_type = Column(String(30), nullable=False, default="MEMBER")
     updated_at = Column(DateTime, default=func.current_timestamp())
     created_at = Column(DateTime, default=func.current_timestamp())
 
