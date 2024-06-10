@@ -82,7 +82,7 @@ async def home(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-@app.get("/user")
+@app.get("/user", tags=["User"])
 async def user_api(
     token: HTTPBearer = Depends(oauth2_scheme),
     session: Session = Depends(db.session),
@@ -95,7 +95,7 @@ async def user_api(
     return user
 
 
-@app.post("/user")
+@app.post("/user", tags=["User"])
 async def post_user(
     update_user: UpdateUserModel,
     token: HTTPBearer = Depends(oauth2_scheme),
@@ -135,7 +135,7 @@ async def post_user(
     return updated_user
 
 
-@app.post("/group")
+@app.post("/group", tags=["Group"])
 async def post_group(
     group: GroupModel,
     token: HTTPBearer = Depends(oauth2_scheme),
@@ -160,7 +160,7 @@ async def post_group(
     return added_group
 
 
-@app.get("/oauth/kakao/redirect", status_code=200)
+@app.get("/oauth/kakao/redirect", status_code=200, tags=["Auth"])
 async def kakao_user_login_api(
     code: str = Query(..., description="카카오 인증코드"),
     session: Session = Depends(db.session),
@@ -314,6 +314,7 @@ async def post_channel_user_api(
     return True
 
 
+@app.post("/check", status_code=200, tags=["Check"])
 async def post_check_api(
     channel_id: int = Body(..., description="채널 아이디"),
     checked_at: Optional[str] = Body(description="체크한 target date", default=None),
@@ -349,7 +350,7 @@ async def post_check_api(
     return check_result
 
 
-@app.get("/check", status_code=200)
+@app.get("/check", status_code=200, tags=["Check"])
 async def get_check_api(
     channel_id: int = Query(default=0),
     checked_at: str = Query(default=None),
@@ -364,7 +365,6 @@ async def get_check_api(
 
     # get current_date check
     # TODO : 체크 이력을 checked_at에서 가져오도록 처리
-    checked_at = checked_at if checked_at else datetime.now().strftime("%Y-%m-%d")
     check_result = get_check(
         session, channel_id=channel_id, user_id=user.user_id, checked_at=checked_at
     )
@@ -372,7 +372,7 @@ async def get_check_api(
     return check_result
 
 
-@app.get("/channel/check", status_code=200)
+@app.get("/channel/check", status_code=200, tags=["Channel"])
 async def get_check_channel_api(
     channel_id: int = Query(default=0),
     start_date=Query(default="", description="체크기준 시작날짜(KST)"),
@@ -422,7 +422,7 @@ async def get_check_channel_api(
     return channel_check_list
 
 
-@app.post("/channel/join")
+@app.post("/channel/join", tags=["Channel"])
 async def post_channel_join(
     channel_code=Query(description="채널 코드", default=""),
     token: HTTPBearer = Depends(oauth2_scheme),
@@ -449,7 +449,7 @@ async def post_channel_join(
     return dict(channel=channel)
 
 
-@app.get("/channel")
+@app.get("/channel", tags=["Channel"])
 async def get_channel_api(
     channel_id: int = Query(description="채널 아이디", default=1),
     token: HTTPBearer = Depends(oauth2_scheme),
@@ -467,7 +467,7 @@ async def get_channel_api(
     return dict(channel=channel)
 
 
-@app.post("/dummy/user", status_code=200)
+@app.post("/dummy/user", status_code=200, tags=["Test"])
 async def dummy_user(user_name: str, session: Session = Depends(db.session)):
     """
     dummy 유저를 생성한 후 token을 return 합니다.
@@ -491,7 +491,7 @@ async def dummy_user(user_name: str, session: Session = Depends(db.session)):
     return token
 
 
-@app.post("/dummy/check", status_code=200)
+@app.post("/dummy/check", status_code=200, tags=["Test"])
 async def dummy_check(
     channel_id: int = Body(default=0),
     user_id: int = Body(default=0),
@@ -515,7 +515,7 @@ async def dummy_check(
     return check_result
 
 
-@app.get("/user/list", status_code=200)
+@app.get("/user/list", status_code=200, tags=["User"])
 async def user_list_api(session: Session = Depends(db.session)):
     """
     서버에 존재하는 유저 정보를 모두 return 합니다.
@@ -523,7 +523,7 @@ async def user_list_api(session: Session = Depends(db.session)):
     return get_users(session)
 
 
-@app.get("/user/check", status_code=200)
+@app.get("/user/check", status_code=200, tags=["Check"])
 async def user_check(
     session: Session = Depends(db.session),
     token: HTTPBearer = Depends(oauth2_scheme),
@@ -567,7 +567,7 @@ async def user_check(
     return result
 
 
-@app.get("/user/channel", status_code=200)
+@app.get("/user/channel", status_code=200,tags=["User"])
 async def get_user_channel(
     session: Session = Depends(db.session), token: HTTPBearer = Depends(oauth2_scheme)
 ):
@@ -583,7 +583,7 @@ async def get_user_channel(
     return user_channels
 
 
-@app.get("/group/list", status_code=200)
+@app.get("/group/list", status_code=200, tags=["Group"])
 async def get_group_list(
     session: Session = Depends(db.session), token: HTTPBearer = Depends(oauth2_scheme)
 ):
@@ -601,7 +601,7 @@ async def get_group_list(
     return group_list
 
 
-@app.post("/group/user")
+@app.post("/group/user", tags=["Group"])
 async def post_group_user(
     group_user: UpdateGroupUserModel,
     session: Session = Depends(db.session),
