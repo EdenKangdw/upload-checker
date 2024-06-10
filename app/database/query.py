@@ -140,7 +140,23 @@ def add_user_channel(session, user_channel):
 
 def get_user_channels(session: Session, user_id):
     try:
-        return session.query(UserChannel).filter(UserChannel.user_id == user_id).all()
+        result = (
+            session.query(Channel, UserChannel.user_type)
+            .join(Channel, Channel.channel_id == UserChannel.channel_id)
+            .filter(UserChannel.user_id == user_id)
+            .all()
+        )
+        user_channels = []
+        for channel, user_type in result:
+            user_channels.append(
+                {
+                    "channel_id": channel.channel_id,
+                    "channel_name": channel.channel_name,
+                    "user_type": user_type,
+                }
+            )
+        return user_channels
+
     except Exception as e:
         print(e)
         return None
