@@ -284,7 +284,7 @@ def get_user_checks_channel(
             session.query(Check)
             .filter(Check.check_channel_id == channel_id)
             .filter(Check.check_user_id == user_id)
-            .filter(Check.created_at.between(start_date, end_date))
+            .filter(Check.checked_at.between(start_date, end_date))
             .all()
         )
         return data

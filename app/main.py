@@ -546,7 +546,7 @@ async def user_check(
     )
     checked_date_list = []
     for check in user_check_list:
-        checked_date_list.append(check.created_at.strftime("%Y-%m-%d"))
+        checked_date_list.append(check.checked_at.strftime("%Y-%m-%d"))
 
     # get period
     start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
