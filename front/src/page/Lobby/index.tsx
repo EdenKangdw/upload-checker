@@ -24,6 +24,8 @@ export default function Lobby() {
         channel_code: channelCode,
       }).then(res => {
         console.log('res', res)
+        getMyChannelList();
+        setChannelCode("");
         // if(!res.data.channel) { 
         //   alert("채널이 존재하지 않습니다."); 
         //   setChannelCode("")
