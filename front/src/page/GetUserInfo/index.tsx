@@ -9,13 +9,14 @@ export default function GetUserInfo () {
   const setUserInfo = useUserInfoStore(state => state.setUserInfo);
 
   const [nickname, setNickName] = useState<string>("");
+  const [groupId, setGroupId] = useState<number>(0);
   const [optionList, setOptionList] = useState<GroupList[]>([]);
 
   const postUserInfo = async () => {
     try {
       await instance.post("/user", {
         nickname: nickname,
-        group_id: 0
+        group_id: groupId,
       }).then(res => {
         setUserInfo(res.data);
         navigate('/lobby');
@@ -43,7 +44,7 @@ export default function GetUserInfo () {
         <input className="input block mt-2 mx-auto" autoFocus value={nickname} onChange={(event: ChangeEvent<HTMLInputElement>) => setNickName(event.target.value)} />
       </label>
       <label className="block mt-6">소속 되어있는 팀을 선택해 주세요.
-        <select name="cars" className="block mt-2 mx-auto py-1 px-2 rounded-md outline-none">
+        <select name="cars" className="block mt-2 mx-auto py-1 px-2 rounded-md outline-none" onChange={(e: ChangeEvent<HTMLSelectElement>) => setGroupId(Number(e.target.value))}>
           {optionList.map(item => 
             <option key={item.group_id} value={item.group_id}>{item.group_name}</option>
           )};
