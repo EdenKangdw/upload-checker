@@ -17,6 +17,7 @@ from database.query import (
     add_check,
     get_check,
     get_groups,
+    get_user_channel_info,
     get_user_channels,
     get_user_checks_channel,
     add_user,

@@ -131,6 +131,7 @@ def add_user_channel(session, user_channel):
     try:
         session.add(user_channel)
         session.commit()
+        return True
     except Exception as e:
         print(e)
         session.rollback()
@@ -143,6 +144,13 @@ def get_user_channels(session: Session, user_id):
     except Exception as e:
         print(e)
         return None
+    
+def get_user_channel_info(session: Session, channel_id, user_id) -> UserChannel:
+    try:
+        return session.query(UserChannel).filter(UserChannel.user_id == user_id).filter(UserChannel.channel_id == channel_id).first()
+    except Exception as e:
+        print(e)
+        return None
 
 
 ################################################################
@@ -152,6 +160,7 @@ def add_channel(session, channel):
     try:
         session.add(channel)
         session.commit()
+        return True 
     except Exception as e:
         print(e)
         session.rollback()
@@ -225,10 +234,7 @@ def add_check(session, check: Check):
 
 def get_check(session, user_id, channel_id, checked_at=None):
     try:
-
         if checked_at:
-            checked_at = datetime.strftime(checked_at, "%Y-%m-%d")
-
             data = (
                 session.query(Check)
                 .filter(Check.check_user_id == user_id)
