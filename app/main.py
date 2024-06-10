@@ -216,12 +216,12 @@ async def post_channel_api(
     add_channel_result = add_channel(session, channel)
     if not add_channel_result:
         return JSONResponse({"error": "Can't add channel"}, status_code=500)
-    
+
     # add user channel
     user_channel = UserChannel(
         user_id=user.user_id,
         channel_id=channel.channel_id,
-        type="CREATOR",
+        user_type="CREATOR",
     )
     add_user_channel(session, user_channel)
     if not add_user_channel:
@@ -233,7 +233,8 @@ async def post_channel_api(
     )
     return channel_result
 
-@app.get('/channel/user', status_code=200, tags=['Channel'])
+
+@app.get("/channel/user", status_code=200, tags=["Channel"])
 async def get_channel_user(
     channel_id: int = Query(default=0),
     session: Session = Depends(db.session),
@@ -251,19 +252,20 @@ async def get_channel_user(
     channel_user = get_user_channel_info(session, channel_id, user.user_id)
     if not channel_user:
         return JSONResponse({"error": "Can't get channel user"}, status_code=500)
-    
+
     # set user type option
     result = {
-        'user_id': user.user_id,
-        'channel_id': channel_id,
-        'isManager': False,
-        'isCreator': False,
+        "user_id": user.user_id,
+        "channel_id": channel_id,
+        "isManager": False,
+        "isCreator": False,
     }
-    result['isManager'] = True if channel_user.type in ['MANAGER', 'CREATOR'] else False
-    result['isCreator'] = True if channel_user.type == 'CREATOR' else False
+    result["isManager"] = True if channel_user.type in ["MANAGER", "CREATOR"] else False
+    result["isCreator"] = True if channel_user.type == "CREATOR" else False
     return result
 
-@app.get('/channel/user/type', status_code=200, tags=['Channel'])
+
+@app.get("/channel/user/type", status_code=200, tags=["Channel"])
 async def get_channel_user(
     channel_id: int = Query(default=0),
     session: Session = Depends(db.session),
@@ -276,12 +278,13 @@ async def get_channel_user(
     user = await get_current_user(token)
 
     result = [
-        {'type': 'MANAGER', 'name': '관리자'},
-        {'type': 'MEMBER', 'name': '멤버'},
+        {"type": "MANAGER", "name": "관리자"},
+        {"type": "MEMBER", "name": "멤버"},
     ]
     return result
 
-@app.post('/channel/user', status_code=200, tags=['Channel'])
+
+@app.post("/channel/user", status_code=200, tags=["Channel"])
 async def post_channel_user_api(
     channel_id: int = Body(..., description="채널 아이디"),
     user_id: int = Body(..., description="유저 아이디"),
@@ -296,14 +299,14 @@ async def post_channel_user_api(
     """
     # user check
     user = await get_current_user(token)
-    
+
     # check is creator
     user_channel = get_user_channel_info(session, channel_id, user.user_id)
     if not user_channel:
         return JSONResponse({"error": "Can't get channel user"}, status_code=500)
-    if user_channel.type != 'CREATOR':
+    if user_channel.type != "CREATOR":
         return JSONResponse({"error": "You are not creator"}, status_code=500)
-    
+
     # update group user
     update_group_user_result = update_group_user(
         session, channel_id, user.user_id, type
@@ -444,7 +447,12 @@ async def post_channel_join(
     user_channel = UserChannel(user_id=user.user_id, channel_id=channel.channel_id)
 
     # join channel
-    add_user_channel(session, user_channel)
+    # check if user is already in channel
+    selected_user_channel = get_user_channel_info(
+        session, channel.channel_id, user.user_id
+    )
+    if not selected_user_channel:
+        add_user_channel(session, user_channel)
 
     return dict(channel=channel)
 
@@ -567,7 +575,7 @@ async def user_check(
     return result
 
 
-@app.get("/user/channel", status_code=200,tags=["User"])
+@app.get("/user/channel", status_code=200, tags=["User"])
 async def get_user_channel(
     session: Session = Depends(db.session), token: HTTPBearer = Depends(oauth2_scheme)
 ):
