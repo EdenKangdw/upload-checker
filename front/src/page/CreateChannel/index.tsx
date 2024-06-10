@@ -1,12 +1,18 @@
-import  { ChangeEvent, useState } from "react";
+import  { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import instance from "../../api/axiosConfig";
 import { useChannelInfoStore } from "../../store/channel";
 import HomeIcon from  '../../assets/images/icon/ico-home.svg'
+import { useErrorMagStore } from "../../store/error";
+import Error from "../../component/Error";
 
 function CreateChannel() {
   const navigate = useNavigate();
   const setChannelInfo = useChannelInfoStore(state => state.setChannelInfo);
+  const {errorMsg, setErrorMsg} = useErrorMagStore(state => ({
+    errorMsg : state.errorMsg,
+    setErrorMsg : state.setErrorMsg,
+  }));
 
   const [channelName, setChannelName] = useState<string>("");
   const [channelCode, setChannelCode] = useState<string>("");
@@ -19,6 +25,7 @@ function CreateChannel() {
           check_type: "check",
         },
       ).then(res => {
+        setErrorMsg("");
         setChannelInfo(res.data);
         alert("채널이 생성되었습니다.")
         navigate("/lobby");
@@ -27,6 +34,10 @@ function CreateChannel() {
       console.error("오류 발생:", error);
     }
   };
+
+  useEffect(() => {
+    errorMsg && setChannelCode("")
+  }, [errorMsg])
 
   return (
     <div className="wrapper items-center justify-center text-center">
@@ -51,10 +62,14 @@ function CreateChannel() {
           id="channelCode"
           placeholder="채널 코드"
           value={channelCode}
-          onChange={(event: ChangeEvent<HTMLInputElement>) => setChannelCode(event.target.value)}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            setChannelCode(event.target.value);
+            setErrorMsg("");
+          }}
         />
       </label>
       <button className="button mt-8" type="button" onClick={fetchPostCreateChannel} disabled={!channelCode || !channelName}>채널 생성</button>
+      {errorMsg && <Error errorMessage={errorMsg} />}
     </div>
   );
 }

@@ -1,21 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-// import DatePicker from 'react-datepicker';
-// import 'react-datepicker/dist/react-datepicker.css';
 import instance from "../../api/axiosConfig";
 import { useChannelInfoStore } from "../../store/channel";
 import { getMyCheckList, getCheckPeriodList } from "../../types/channel";
-import CalendarIcon from '../assets/images/icon/ico-calendar.svg';
 import HomeIcon from  '../../assets/images/icon/ico-home.svg'
-import classNames from "classnames";
+
+import DatePicker, { registerLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ko } from 'date-fns/locale';
+import { format } from 'date-fns';
+import { Dayjs } from "dayjs";
+
+registerLocale('ko', ko);
 
 export default function ChannelRoom() {
   const location = useLocation();
+  const { data } = location.state || {};
   const navigate = useNavigate();
-  const {channel_id, channel_name } = useChannelInfoStore(state => ({
-    channel_id: state.channel_id,
-    channel_name: state.channel_name
-  }));
+
+
 
   const [checked, setChecked] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"DAY" | "PERIOD" | "MY_ATTENDANCE">("DAY");
@@ -26,14 +29,17 @@ export default function ChannelRoom() {
   const [myCheckList, setMyCheckList] = useState<getMyCheckList[]>([]); // 나의 출석 조회
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(new Date());
+  const [checkedAt, setCheckedAt] = useState<Date | null>(null);
   const [summarySwitch, setSummarySwitch] = useState(true);
+
 
 
 
   const postAttendanceCheck = async () => {
     try {
       await instance.post("/check", {
-        channel_id: channel_id,
+        channel_id: data.channel.channel_id,
+        // checked_at : checkedAt && format(checkedAt, 'yyMMdd'),
       }).then(res => {
         console.log("서버 응답:", res);
         setChecked(true);
@@ -43,90 +49,89 @@ export default function ChannelRoom() {
     }
   };
 
-  const getTodayCheckList = async () => {
-    try {
-      setEndDate(null);
-      await instance.get(`/channel/check`, {
-        params: {
-          channel_id: channel_id,
-          start_date: startDate && startDate.toISOString().split("T")[0],
-          end_date: "",
-        },
-      }).then(res => {
-        setTotalCheckList([]);
-        setMyCheckList([]);
-        setTodayCheckList(res.data);
-      })
-    } catch (error) {
-      console.error("오류 발생:", error);
-    }
-  };
+  // const getTodayCheckList = async () => {
+  //   try {
+  //     setEndDate(null);
+  //     await instance.get(`/channel/check`, {
+  //       params: {
+  //         channel_id: channel_id,
+  //         start_date: startDate && startDate.toISOString().split("T")[0],
+  //         end_date: "",
+  //       },
+  //     }).then(res => {
+  //       setTotalCheckList([]);
+  //       setMyCheckList([]);
+  //       setTodayCheckList(res.data);
+  //     })
+  //   } catch (error) {
+  //     console.error("오류 발생:", error);
+  //   }
+  // };
 
-  const getTotalCheckList = async () => {
-    try {
-      if (!(startDate && endDate)) {
-        alert("기간 조회를 위해 시작일과 종료일을 지정해주세요.");
-        return false;
-      }
+  // const getTotalCheckList = async () => {
+  //   try {
+  //     if (!(startDate && endDate)) {
+  //       alert("기간 조회를 위해 시작일과 종료일을 지정해주세요.");
+  //       return false;
+  //     }
 
-      if (startDate > endDate) {
-        alert("시작일이 종료일보다 뒤에 있습니다.");
-        return false;
-      }
+  //     if (startDate > endDate) {
+  //       alert("시작일이 종료일보다 뒤에 있습니다.");
+  //       return false;
+  //     }
 
-      // 체크 리스트 요청을 보냄
-      const response = await instance.get("/channel/check", {
-        params: {
-          channel_id: channel_id,
-          start_date: startDate.toISOString().split("T")[0],
-          end_date: endDate !== null ? endDate.toISOString().split("T")[0] : "",
-        },
-      });
-      console.log("서버 응답:", response.data);
-      setTodayCheckList([]);
-      setMyCheckList([]);
-      setTotalCheckList(response.data);
-    } catch (error) {
-      console.error("오류 발생:", error);
-    }
-  };
+  //     // 체크 리스트 요청을 보냄
+  //     const response = await instance.get("/channel/check", {
+  //       params: {
+  //         channel_id: channel_id,
+  //         start_date: startDate.toISOString().split("T")[0],
+  //         end_date: endDate !== null ? endDate.toISOString().split("T")[0] : "",
+  //       },
+  //     });
+  //     console.log("서버 응답:", response.data);
+  //     setTodayCheckList([]);
+  //     setMyCheckList([]);
+  //     setTotalCheckList(response.data);
+  //   } catch (error) {
+  //     console.error("오류 발생:", error);
+  //   }
+  // };
 
-  const getMyCheckList = async () => {
-    try {
-      // 체크 리스트 요청을 보냄
+  // const getMyCheckList = async () => {
+  //   try {
+  //     // 체크 리스트 요청을 보냄
 
-      if (!(startDate && endDate)) {
-        alert("나의 출석체크 조회를 위해 시작일과 종료일을 지정해주세요.");
-        return false;
-      }
+  //     if (!(startDate && endDate)) {
+  //       alert("나의 출석체크 조회를 위해 시작일과 종료일을 지정해주세요.");
+  //       return false;
+  //     }
 
-      if (startDate > endDate) {
-        alert("시작일이 종료일보다 뒤에 있습니다.");
-        return false;
-      }
+  //     if (startDate > endDate) {
+  //       alert("시작일이 종료일보다 뒤에 있습니다.");
+  //       return false;
+  //     }
 
-      const response = await instance.get("/user/check", {
-        params: {
-          channel_id: channel_id,
-          start_date: startDate.toISOString().split("T")[0],
-          end_date: endDate !== null ? endDate.toISOString().split("T")[0] : "",
-        },
-      });
+  //     const response = await instance.get("/user/check", {
+  //       params: {
+  //         channel_id: channel_id,
+  //         start_date: startDate.toISOString().split("T")[0],
+  //         end_date: endDate !== null ? endDate.toISOString().split("T")[0] : "",
+  //       },
+  //     });
 
-      console.log("서버 응답:", response.data);
-      setTodayCheckList([]);
-      setTotalCheckList([]);
-      setMyCheckList(response.data);
-    } catch (error) {
-      console.error("오류 발생:", error);
-    }
-  };
+  //     console.log("서버 응답:", response.data);
+  //     setTodayCheckList([]);
+  //     setTotalCheckList([]);
+  //     setMyCheckList(response.data);
+  //   } catch (error) {
+  //     console.error("오류 발생:", error);
+  //   }
+  // };
 
-  useEffect(() => {
-    getTodayCheckList();
-  }, [])
+  // useEffect(() => {
+  //   getTodayCheckList();
+  // }, [])
 
-  console.log('activeTab',activeTab)
 
   return (
     <div className="wrapper gap-5">
@@ -134,12 +139,55 @@ export default function ChannelRoom() {
         <img src={HomeIcon} alt="홈으로 가기" />
       </button>
 
-      <p className="title">{channel_name}</p>
+      <p className="title">{data.channel.channel_name}</p>
    
       <div className="flex justify-between items-center">
         <p>출석체크 여부 : {checked && "O"}</p>
         <button className="button" type="button" onClick={postAttendanceCheck}>출석체크</button>
       </div>
+
+      {/* <div>
+        <p className="mb-4">이전 날짜 지정해서 체크하기</p>
+        <label className="relative inline-block">시작일 : 
+          <DatePicker
+            className="bg-transparent cursor-pointer border-b-2 border-button outline-none"
+            dateFormat='yyyy.MM.dd' 
+            shouldCloseOnSelect 
+            selected={startDate}
+            onChange={(date) => setStartDate(date)}
+            locale="ko"
+            showIcon
+          />
+        </label>
+
+        <label className="relative inline-block">종료일 : 
+          <DatePicker 
+            className="bg-transparent cursor-pointer border-b-2 border-button outline-none"
+            dateFormat='yyyy.MM.dd' 
+            shouldCloseOnSelect 
+            selected={endDate} 
+            onChange={(date) => setEndDate(date)} 
+            locale="ko"
+            showIcon
+          />
+       </label>
+       <button type="button" onClick={() => {}}>조회</button>
+      </div> */}
+
+
+{/* 
+      <label className="relative inline-block">이전 날짜 지정해서 체크하기
+          <DatePicker
+            className="bg-transparent cursor-pointer border-b-2 border-button outline-none"
+            dateFormat='yyyy.MM.dd' 
+            shouldCloseOnSelect 
+            selected={checkedAt}
+            onChange={(date) => setCheckedAt(date)}
+            locale={ko}
+            showIcon
+          />
+        </label> */}
+
 
       {/* <div>
         <label className="relative inline-block">시작일 : 

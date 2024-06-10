@@ -6,7 +6,8 @@ interface Actions  {
   setChannelInfo: (payload: ChannelInfo) => void
 }
 
-const initialState: ChannelInfo = {  
+const initialState: ChannelInfo = { 
+  channel_check_option_id: 0, 
   channel_check_type: "check",
   channel_code: "",
   channel_creator_id: 0,
@@ -22,6 +23,7 @@ export const useChannelInfoStore = create<ChannelInfo & Actions>()(
     (set) => ({
       ...initialState,
       setChannelInfo: (payload: ChannelInfo) => set((state) => ({  
+        channel_check_option_id: state.channel_check_option_id = payload.channel_check_option_id,
         channel_check_type: state.channel_check_type = payload.channel_check_type,
         channel_code: state.channel_code = payload.channel_code,
         channel_creator_id: state.channel_creator_id = payload.channel_creator_id,

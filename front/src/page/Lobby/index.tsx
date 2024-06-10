@@ -3,21 +3,22 @@ import { useNavigate } from "react-router-dom";
 import instance from "../../api/axiosConfig";
 import PlusIcon from '../../assets/images/icon/ico-plus.svg'
 import { useChannelInfoStore } from "../../store/channel";
-import { MyChannelInfo } from "../../types/channel";
+import { ChannelListItem } from "../../types/channel";
 import { useUserInfoStore } from "../../store/user";
 
 export default function Lobby() {
   const navigate = useNavigate();
   const setChannelInfo = useChannelInfoStore(state => state.setChannelInfo);
+
   const {user_name, user_nickname} = useUserInfoStore(state => ({
     user_name: state.user_name,
     user_nickname: state.user_nickname,
   }));
 
   const [channelCode, setChannelCode] = useState<string>("");
-  const [myChannelList, setMyChannelList] = useState<MyChannelInfo[]>([]);
+  const [myChannelList, setMyChannelList] = useState<ChannelListItem[]>([]);
 
-  const getEnterChannel = async () => {
+  const postJoinChannel = async () => {
     try {
       await instance.post("/channel/join", {
         params: { channel_code: channelCode },
@@ -29,6 +30,17 @@ export default function Lobby() {
         // } else {
         //   setChannelInfo(res.data.channel);
         // }
+      })
+    } catch (error) {
+      console.error("오류 발생:", error);
+    }
+  };
+
+  const getEnterChannel = async (channelId: number) => {
+    try {
+      await instance.get(`/channel?channel_id=${channelId}`).then(res => {
+        // setChannelInfo(res.data);
+        navigate('/channel', { state: { data: res.data} });
       })
     } catch (error) {
       console.error("오류 발생:", error);
@@ -57,7 +69,7 @@ export default function Lobby() {
   return (
     <div className="wrapper items-start justify-start">
       <div className="w-full flex justify-between items-center">
-        <p className="text-[#3A4D39]"><em className="font-bold text-3xl">{user_name || user_nickname}</em> 님</p>
+        <p className="text-[#3A4D39]"><em className="font-bold text-3xl">{user_nickname || user_name}</em> 님</p>
         <button className="w-8 rounded-full bg-button-3 hover:bg-button-2" type="button" onClick={() => navigate("/channel/create")}>
           <img src={PlusIcon} alt="채널 만들기" /> 채널 생성
         </button>
@@ -74,19 +86,21 @@ export default function Lobby() {
             onChange={(event:ChangeEvent<HTMLInputElement>) => setChannelCode(event.target.value)}
             autoFocus
           />
-          <button className="button flex-none" type="button" onClick={getEnterChannel} disabled={!channelCode}>가입</button>
+          <button className="button flex-none" type="button" onClick={postJoinChannel} disabled={!channelCode}>가입</button>
         </div>
       </div>
       
-      <div className="mt-8 w-full">
-        <p className="title">내 채널 목록</p>
-        {myChannelList?.map((item, idx)  => 
-          <div key={idx} className="flex justify-between items-center gap-2">
-            <span className="flex-auto">채널1</span>
-            <button className="button flex-none" type="button" onClick={getEnterChannel}>채널 입장</button>
-          </div>
-        )}
-      </div>
+      {myChannelList.length > 0 && 
+        <div className="mt-8 w-full">
+          <p className="title">내 채널 목록</p>
+          {myChannelList?.map((item) => 
+            <div key={item.channel_id} className="flex justify-between items-center gap-2">
+              <span className="flex-auto">{item.channel_name}</span>
+              <button className="button flex-none" type="button" onClick={() => getEnterChannel(item.channel_id)}>채널 입장</button>
+            </div>
+          )}
+        </div>
+      }
     </div>
   );
 }
