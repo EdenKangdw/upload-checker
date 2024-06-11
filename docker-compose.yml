@@ -7,6 +7,8 @@ services:
     build: 
       context: .
       dockerfile: ./checker.Dockerfile
+    environment:
+      TZ: "Asia/Seoul"
     volumes:
       - ./app:/app
     ports:
@@ -25,6 +27,7 @@ services:
       MYSQL_DATABASE: uploadChecker
       MYSQL_USER: checker
       MYSQL_PASSWORD: 123456
+      TZ: "Asia/Seoul"
     ports:
       - "3306:3306"
     volumes:
