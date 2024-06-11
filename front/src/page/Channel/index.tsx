@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import instance from "../../api/axiosConfig";
-import { useChannelInfoStore } from "../../store/channel";
 import { getMyCheckList, getCheckPeriodList } from "../../types/channel";
 import HomeIcon from  '../../assets/images/icon/ico-home.svg'
 
@@ -9,7 +8,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
-import { Dayjs } from "dayjs";
+import dayjs,{ Dayjs } from "dayjs";
 
 registerLocale('ko', ko);
 
@@ -42,8 +41,8 @@ export default function ChannelRoom() {
         // checked_at : checkedAt && format(checkedAt, 'yyMMdd'),
       }).then(res => {
         console.log("서버 응답:", res);
-        setChecked(true);
-      })
+        fetchGetAttendanceCheck();
+      });
     } catch (error) {
       console.error("오류 발생:", error);
     }
@@ -128,9 +127,19 @@ export default function ChannelRoom() {
   //   }
   // };
 
-  // useEffect(() => {
-  //   getTodayCheckList();
-  // }, [])
+  const fetchGetAttendanceCheck = async () => {
+    try {
+      await instance.get(`/check?channel_id=${data.channel.channel_id}&checked_at=${dayjs().format('YYYY-MM-DD')}`).then(res => {
+        res.data?.checked_at? setChecked(true) : setChecked(false);
+      })
+    } catch (error) {
+      console.error("오류 발생:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchGetAttendanceCheck();
+  }, []);
 
 
   return (
@@ -143,7 +152,7 @@ export default function ChannelRoom() {
    
       <div className="flex justify-between items-center">
         <p>출석체크 여부 : {checked && "O"}</p>
-        <button className="button" type="button" onClick={postAttendanceCheck}>출석체크</button>
+        <button className="button" type="button" onClick={postAttendanceCheck} disabled={checked}>출석체크</button>
       </div>
 
       {/* <div>

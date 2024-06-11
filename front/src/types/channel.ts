@@ -39,6 +39,14 @@ export interface UserInfo {
   user_nickname: string | null; // 설정한 닉네임
   updated_at: string;
   created_at: string;
+  groups?: {
+    created_at: string;
+    group_id: number;
+    id: number;
+    type: "CREATOR" | "MANAGER" | "MEMBER";
+    updated_at: string;
+    user_id: number;
+  }[];
 }
 
 
