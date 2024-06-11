@@ -85,6 +85,14 @@ def get_groups(session: Session):
 ################################################################
 
 
+def get_group_users(session: Session, user_id):
+    try:
+        return session.query(GroupUser).filter(User.user_id == user_id).all()
+    except Exception as e:
+        print(e)
+        return None
+
+
 def add_group_user(session: Session, group_user):
     try:
         checked_group_user = (
@@ -257,6 +265,7 @@ def add_check(session, check: Check):
 def get_check(session, user_id, channel_id, checked_at=None):
     try:
         if checked_at:
+            print(checked_at)
             data = (
                 session.query(Check)
                 .filter(Check.check_user_id == user_id)
@@ -264,6 +273,7 @@ def get_check(session, user_id, channel_id, checked_at=None):
                 .filter(cast(Check.checked_at, Date) == checked_at)
                 .first()
             )
+            print(data)
             return data
         return (
             session.query(Check)

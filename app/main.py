@@ -16,6 +16,7 @@ from database.query import (
     get_channel_with_name,
     add_check,
     get_check,
+    get_group_users,
     get_groups,
     get_user_channel_info,
     get_user_channels,
@@ -92,7 +93,14 @@ async def user_api(
     """
     # get user info
     user = await get_current_user(token)
-    return user
+
+    # get user group_info
+    group_users = get_group_users(session, user.user_id)
+    result = user.__dict__
+    if group_users:
+        result["groups"] = group_users
+
+    return result
 
 
 @app.post("/user", tags=["User"])
