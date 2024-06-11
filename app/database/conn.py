@@ -13,8 +13,9 @@ DB_URL = f"mysql+pymysql://{config.MYSQL_USER}:{config.MYSQL_PASSWORD}@{config.M
 class engineconn:
     def __init__(self):
         self.engine = create_engine(DB_URL)
+        self._session = self._sessionmaker()
         
-    def sessionmaker(self):
+    def _sessionmaker(self):
         Session = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         session = Session()
         return session
@@ -28,7 +29,9 @@ class engineconn:
         print("init database completed")
     
     def get_db(self) -> Generator:
-        db = self.sessionmaker()
+        if self._session is None:
+            raise Exception("must be called 'init_app'")
+        db = self._session()
         try:
             yield db
         finally:
