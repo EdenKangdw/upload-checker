@@ -13,9 +13,8 @@ DB_URL = f"mysql+pymysql://{config.MYSQL_USER}:{config.MYSQL_PASSWORD}@{config.M
 class engineconn:
     def __init__(self):
         self.engine = create_engine(DB_URL)
-        self._session = self._sessionmaker()
-        
-    def _sessionmaker(self):
+
+    def sessionmaker(self):
         Session = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         session = Session()
         return session
@@ -27,18 +26,17 @@ class engineconn:
     def init_db(self):
         Base.metadata.create_all(self.engine)
         print("init database completed")
-    
+
     def get_db(self) -> Generator:
-        if self._session is None:
-            raise Exception("must be called 'init_app'")
-        db = self._session()
+        db = self.sessionmaker()
         try:
             yield db
         finally:
             db.close()
-    
+
     @property
     def session(self) -> Callable:
         return self.get_db
+
 
 db = engineconn()
