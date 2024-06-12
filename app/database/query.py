@@ -1,7 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
+import traceback
+
+from fastapi import logger
 from database.conn import engineconn, db
 from database.schema import Group, GroupUser, User, Channel, Check, UserChannel
-from sqlalchemy import cast, Date
+from sqlalchemy import cast, Date, desc
 from sqlalchemy.orm import Session
 
 
@@ -262,28 +265,29 @@ def add_check(session, check: Check):
     return False
 
 
-def get_check(session, user_id, channel_id, checked_at=None):
+def get_today_check(session, user_id, channel_id, checked_at=None):
     try:
+        # print(checked_at)
+        STANDARD_CHECK_TIME = 18
+        check_start_time = datetime.combine(
+            checked_at.date(), time(STANDARD_CHECK_TIME, 0)
+        )
+        check_end_time = check_start_time + timedelta(days=1)
+        # print(check_start_time)
+        # print(check_end_time)
         if checked_at:
-            print(checked_at)
             data = (
                 session.query(Check)
                 .filter(Check.check_user_id == user_id)
                 .filter(Check.check_channel_id == channel_id)
-                .filter(cast(Check.checked_at, Date) == checked_at)
+                .filter(Check.checked_at.between(check_start_time, check_end_time))
+                .order_by(desc(Check.checked_at))
                 .first()
             )
-            print(data)
             return data
-        return (
-            session.query(Check)
-            .filter(Check.check_user_id == user_id)
-            .filter(Check.check_channel_id == channel_id)
-            .first()
-        )
 
     except Exception as e:
-        print(e)
+        traceback.print_exc(e)
         return None
 
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from typing import Annotated, Optional, Union
 from fastapi import Body, Depends, FastAPI, Query, Request
 from api_model.model import (
@@ -7,29 +7,7 @@ from api_model.model import (
     UpdateGroupUserModel,
     UpdateUserModel,
 )
-from database.query import (
-    add_channel,
-    add_group,
-    add_group_user,
-    add_user_channel,
-    get_channel,
-    get_channel_with_name,
-    add_check,
-    get_check,
-    get_group_users,
-    get_groups,
-    get_user_channel_info,
-    get_user_channels,
-    get_user_checks_channel,
-    add_user,
-    get_user,
-    get_user_with_id,
-    get_users,
-    get_channel_with_code,
-    get_channel_checks,
-    update_group_user,
-    update_user_nickname,
-)
+from database.query import *
 from util.auth import get_current_user
 from database.conn import engineconn, db
 from database.base import Base
@@ -359,7 +337,7 @@ async def post_check_api(
         return JSONResponse({"error": "duplicated check"}, status_code=500)
 
     # get check
-    check_result = get_check(session, user.user_id, channel_id, checked_at)
+    check_result = get_today_check(session, user.user_id, channel_id, checked_at)
 
     return check_result
 
@@ -373,14 +351,22 @@ async def get_check_api(
 ):
     """
     채널 아이디를 확인하여, 현재 유저가 출석을 했는지 여부를 확인하여 출석 정보를 return 합니다.
+    - 당일 기준시간 이전의 체크가 존재하면, check 이력을 return 하고
+    - 당일 기준시간 이전의 체크가 존재하지 않으면, None을 return 합니다.
     """
     # check user
     user = await get_current_user(token)
 
+    checked_at_datetime = (
+        datetime.strptime(checked_at, "%Y-%m-%d") if checked_at else datetime.now()
+    )
+
     # get current_date check
-    # TODO : 체크 이력을 checked_at에서 가져오도록 처리
-    check_result = get_check(
-        session, channel_id=channel_id, user_id=user.user_id, checked_at=checked_at
+    check_result = get_today_check(
+        session,
+        channel_id=channel_id,
+        user_id=user.user_id,
+        checked_at=checked_at_datetime,
     )
 
     return check_result
