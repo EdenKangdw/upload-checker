@@ -265,6 +265,31 @@ def add_check(session, check: Check):
     return False
 
 
+def get_check(session, user_id, channel_id, checked_at=None):
+    try:
+        if checked_at:
+            print(checked_at)
+            data = (
+                session.query(Check)
+                .filter(Check.check_user_id == user_id)
+                .filter(Check.check_channel_id == channel_id)
+                .filter(cast(Check.checked_at, Date) == checked_at)
+                .first()
+            )
+            print(data)
+            return data
+        return (
+            session.query(Check)
+            .filter(Check.check_user_id == user_id)
+            .filter(Check.check_channel_id == channel_id)
+            .first()
+        )
+
+    except Exception as e:
+        traceback.print_exc(e)
+        return None
+
+
 def get_today_check(session, user_id, channel_id, checked_at=None):
     try:
         # print(checked_at)

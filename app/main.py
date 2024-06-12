@@ -337,7 +337,7 @@ async def post_check_api(
         return JSONResponse({"error": "duplicated check"}, status_code=500)
 
     # get check
-    check_result = get_today_check(session, user.user_id, channel_id, checked_at)
+    check_result = get_check(session, user.user_id, channel_id, checked_at)
 
     return check_result
 
