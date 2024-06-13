@@ -275,7 +275,6 @@ def get_check(session, user_id, channel_id, checked_at=None):
                 .filter(cast(Check.checked_at, Date) == cast(checked_at, Date))
                 .first()
             )
-            print(data)
             return data
         return (
             session.query(Check)
