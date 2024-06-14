@@ -12,7 +12,7 @@ oauth2_scheme = HTTPBearer()
 app = APIRouter()
 
 
-@app.post("/")
+@app.post("")
 async def post_group(
     group: GroupModel,
     token: HTTPBearer = Depends(oauth2_scheme),

@@ -22,7 +22,7 @@ oauth2_scheme = HTTPBearer()
 app = APIRouter()
 
 
-@app.get("/")
+@app.get("", status_code=200)
 async def user_api(
     token: HTTPBearer = Depends(oauth2_scheme),
     session: Session = Depends(db.session),
@@ -42,7 +42,7 @@ async def user_api(
     return result
 
 
-@app.post("/")
+@app.post("", status_code=200)
 async def post_user(
     update_user: UpdateUserModel,
     token: HTTPBearer = Depends(oauth2_scheme),

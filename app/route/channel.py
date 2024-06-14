@@ -22,7 +22,7 @@ oauth2_scheme = HTTPBearer()
 app = APIRouter()
 
 
-@app.post("/", status_code=200)
+@app.post("", status_code=200)
 async def post_channel_api(
     params: ChannelModel,
     token: HTTPBearer = Depends(oauth2_scheme),
@@ -234,7 +234,7 @@ async def post_channel_join(
     return dict(channel=channel)
 
 
-@app.get("/")
+@app.get("")
 async def get_channel_api(
     channel_id: int = Query(description="채널 아이디", default=1),
     token: HTTPBearer = Depends(oauth2_scheme),

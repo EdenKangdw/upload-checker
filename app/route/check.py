@@ -15,7 +15,7 @@ oauth2_scheme = HTTPBearer()
 app = APIRouter()
 
 
-@app.post("/", status_code=200)
+@app.post("", status_code=200)
 async def post_check_api(
     channel_id: int = Body(..., description="채널 아이디"),
     checked_at: Optional[str] = Body(description="체크한 target date", default=None),
@@ -96,7 +96,7 @@ async def post_check_late_api(
     return check_result
 
 
-@app.get("/", status_code=200)
+@app.get("", status_code=200)
 async def get_check_api(
     channel_id: int = Query(default=0),
     checked_at: str = Query(default=None),
