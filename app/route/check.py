@@ -114,13 +114,16 @@ async def get_check_api(
 
     SATURDAY_CHECK_TIME = 12
     # check saturday
+    print(checked_at)
     if checked_at.weekday() == 5:
-        # 토요일에는 체크
+        # 토요일 체크
         check_start_time = datetime.combine(
             checked_at.date(), time(SATURDAY_CHECK_TIME, 0)
         )
         check_end_time = datetime.combine(checked_at.date(), time(23, 59, 59))
+        print(check_end_time, check_start_time)
     else:
+        # 평일 체크
         STANDARD_CHECK_TIME = 18
         if datetime.now().time().hour < STANDARD_CHECK_TIME:
             check_end_time = datetime.combine(
@@ -132,8 +135,6 @@ async def get_check_api(
                 checked_at.date(), time(STANDARD_CHECK_TIME, 0)
             )
             check_end_time = check_start_time + timedelta(days=1)
-    # print(check_start_time)
-    # print(check_end_time)
 
     # get current_date check
     check_result = get_period_check(

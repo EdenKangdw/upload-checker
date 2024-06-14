@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from api_model.model import ChannelModel, UpdateUserModel
 from sqlalchemy.orm import Session
+from util.check import is_check_time_in_range
 from database.query import (
     add_group_user,
     get_group_users,
@@ -111,9 +112,10 @@ async def user_check(
     user_check_list = get_user_checks_channel(
         session, channel_id, user.user_id, start_date, end_date
     )
-    checked_date_list = []
+
+    checked_datetime_list = []
     for check in user_check_list:
-        checked_date_list.append(check.checked_at.strftime("%Y-%m-%d"))
+        checked_datetime_list.append(check.checked_at)
 
     # get period
     start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
@@ -125,8 +127,12 @@ async def user_check(
 
     for target_date in period_array:
         check = {"date": "", "check": "X"}
-        if target_date.strftime("%Y-%m-%d") in checked_date_list:
-            check["check"] = "O"
+        for checked_datetime in checked_datetime_list:
+            if target_date.date() == checked_datetime.date():
+                check["check"] = (
+                    "O" if is_check_time_in_range(checked_datetime) else "X"
+                )
+
         check["date"] = target_date.strftime("%Y-%m-%d")
         result.append(check)
 
