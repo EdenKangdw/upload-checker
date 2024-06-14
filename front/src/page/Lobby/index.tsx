@@ -1,20 +1,17 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import instance from "../../api/axiosConfig";
-import { useChannelInfoStore } from "../../store/channel";
 import { ChannelListItem } from "../../types/channel";
-import { useUserInfoStore } from "../../store/user";
 
 export default function Lobby() {
   const navigate = useNavigate();
 
-  const {user_name, user_nickname} = useUserInfoStore(state => ({
-    user_name: state.user_name,
-    user_nickname: state.user_nickname,
-  }));
-
   const [channelCode, setChannelCode] = useState<string>("");
   const [myChannelList, setMyChannelList] = useState<ChannelListItem[]>([]);
+  const [myName, setMyName] = useState<{username:string; nickname:string}>({
+    username: "",
+    nickname: "",
+  });
 
   const postJoinChannel = async () => {
     try {
@@ -62,14 +59,28 @@ export default function Lobby() {
     }
   };
 
+  const getUserInfo = async () => {
+    try {
+      await instance.get("/user").then(res => {
+        setMyName({
+          username: res.data.user_name,
+          nickname: res.data.user_nickname,
+        });
+      });
+    } catch (error) {
+      console.error("오류 발생:", error);
+    }
+  };
+
   useEffect(() => {
+    getUserInfo();
     getMyChannelList();
   }, [])
 
   return (
     <div className="wrapper items-start justify-start">
       <div className="w-full flex justify-between items-center">
-        <p className="text-[#3A4D39]"><em className="font-bold text-3xl">{user_nickname || user_name}</em> 님</p>
+        <p className="text-[#3A4D39]"><em className="font-bold text-3xl">{myName.nickname || myName.username}</em> 님</p>
         <button className="button1 before:content-plusIcon before:inline-block before:w-6 before:align-middle" type="button" onClick={() => navigate("/channel/create")}>
           채널 생성
         </button>
