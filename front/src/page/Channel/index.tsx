@@ -33,6 +33,7 @@ export default function ChannelRoom() {
         channel_id: data.channel.channel_id,
       }).then(res => {
         console.log("서버 응답:", res);
+        if(res.data === null) return alert("지금은 체크 시간이 아닙니다. 평일(18:00-23:59), 토요일(12:00-23:59)에 다시 시도해 주세요.")
         fetchGetAttendanceCheck();
       });
     } catch (error) {
@@ -144,9 +145,12 @@ export default function ChannelRoom() {
 
       <p className="title">{data.channel.channel_name}</p>
 
-      <div className="flex justify-between items-center">
-        <p>출석체크 여부 : {checked ? "O": "X"}</p>
-        <button className="button" type="button" onClick={fetchPostAttendanceCheck} disabled={checked}>출석체크</button>
+<     div>
+        <div className="flex flex-wrap justify-between items-center">
+          <p>출석체크 여부 : {checked ? "O": "X"}</p>
+          <button className="button" type="button" onClick={fetchPostAttendanceCheck} disabled={checked}>출석체크</button>
+        </div>
+        <div className="text-[#D72323]">* 평일(18:00-23:59), 토요일(12:00-23:59)에 체크 가능합니다.</div>
       </div>
 
       <div className="w-full">
