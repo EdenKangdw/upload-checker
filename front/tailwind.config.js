@@ -21,10 +21,10 @@ module.exports = {
           5: "#718355",
         },
         secondary: {
-          DEFAULT: "#F3CA52",
-          1: "#F6E9B2",
-          // 2: "#ADBC9F",
-          // 3: "#FBFADA",
+          DEFAULT: "#CCD5AE",
+          1: "#E9EDC9",
+          2: "#FEFAE0",
+          3: "#FAEDCD",
         },
         button: {
           DEFAULT: "#ED9455",
@@ -47,6 +47,9 @@ module.exports = {
       },
       content: {
         'plusIcon': 'url("../src/assets/images/icon/ico-plus.svg")',
+      },
+      fontFamily: {
+        'ownglyph': ['Ownglyph_ryuttung-Rg', 'sans-serif'],
       },
     },
   },

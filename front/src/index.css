@@ -1,12 +1,24 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import url('https://fastly.jsdelivr.net/gh/projectnoonnu/2405-2@1.0/Ownglyph_ryuttung-Rg.woff2');
+
+@font-face {
+  font-family: 'Ownglyph_ryuttung-Rg';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2405-2@1.0/Ownglyph_ryuttung-Rg.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Ownglyph_ryuttung-Rg', sans-serif;
+}
 
 @layer base {
   html,
   body,
   #root {
-    @apply w-full h-full min-w-[320px] bg-gradient-to-b from-[#fff] to-[#e9b7ce] text-text font-semibold;
+    @apply w-full h-full min-w-[320px] bg-[#F9F7F7] text-text font-semibold;
   }
 }
 
@@ -16,6 +28,10 @@
 
 .button {
   @apply bg-[#769FCD] text-[#F7FBFC] rounded-md px-4 py-1 font-bold hover:bg-[#B9D7EA] disabled:bg-[#dee2e6]  disabled:cursor-not-allowed;
+}
+
+.button1 {
+  @apply bg-secondary-1 text-text rounded-md px-4 py-1 font-bold hover:bg-secondary-2 disabled:bg-[#dee2e6]  disabled:cursor-not-allowed;
 }
 
 .input {
@@ -28,4 +44,8 @@
 
 .title {
   @apply text-2xl text-center font-bold text-button;
+}
+
+.tr {
+  @apply h-10 text-center;
 }

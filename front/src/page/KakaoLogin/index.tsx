@@ -7,9 +7,13 @@ export default function KakaoLogin() {
 
   return (
     <div className="wrapper justify-center">
-      <em className="mb-9 text-5xl font-bold">
-        In love with
-        <br /> each other
+      <em className="mb-9 text-lg font-bold">
+        너는 내게 부르짖으라
+        <br />내가 네게 응답하겠고
+        <br />네가 알지 못하는 크고 은밀한 일을
+        <br />네게 보이리라  
+        <br />
+        <br />-렘33:3-
       </em> 
       <button type="button" className="self-end" onClick={() => (window.location.href = kakaoUrl)}>
         <img

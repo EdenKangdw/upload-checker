@@ -25,5 +25,9 @@ export default function GetToken () {
     fetchGetUserInfo();
   }, [])
 
-  return (<img src={SpinnerIcon} alt="로딩중" />)
+  return (
+    <div className="wrapper justify-center align-middle">
+      <img src={SpinnerIcon} alt="로딩중" />
+    </div>
+  );
 }

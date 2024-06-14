@@ -1,14 +1,12 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import instance from "../../api/axiosConfig";
-import PlusIcon from '../../assets/images/icon/ico-plus.svg'
 import { useChannelInfoStore } from "../../store/channel";
 import { ChannelListItem } from "../../types/channel";
 import { useUserInfoStore } from "../../store/user";
 
 export default function Lobby() {
   const navigate = useNavigate();
-  const setChannelInfo = useChannelInfoStore(state => state.setChannelInfo);
 
   const {user_name, user_nickname} = useUserInfoStore(state => ({
     user_name: state.user_name,
