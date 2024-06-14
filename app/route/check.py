@@ -47,10 +47,10 @@ async def post_check_api(
         if not added_check:
             return JSONResponse({"error": "duplicated check"}, status_code=500)
 
-    # get check
-    check_result = get_check(session, user.user_id, channel_id, checked_at)
-
-    return check_result
+        # get check
+        check_result = get_check(session, user.user_id, channel_id, checked_at)
+        return check_result
+    return None
 
 
 @app.post("/late", status_code=200)
