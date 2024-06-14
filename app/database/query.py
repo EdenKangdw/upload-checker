@@ -288,33 +288,17 @@ def get_check(session, user_id, channel_id, checked_at=None):
         return None
 
 
-def get_today_check(session, user_id, channel_id, checked_at=None):
+def get_period_check(session, user_id, channel_id, check_start_time, check_end_time):
     try:
-        # print(checked_at)
-        # current_time > standard
-        STANDARD_CHECK_TIME = 18
-        if datetime.now().time().hour < STANDARD_CHECK_TIME:
-            check_end_time = datetime.combine(
-                checked_at.date(), time(STANDARD_CHECK_TIME, 0)
-            )
-            check_start_time = check_end_time - timedelta(days=1)
-        else:
-            check_start_time = datetime.combine(
-                checked_at.date(), time(STANDARD_CHECK_TIME, 0)
-            )
-            check_end_time = check_start_time + timedelta(days=1)
-        # print(check_start_time)
-        # print(check_end_time)
-        if checked_at:
-            data = (
-                session.query(Check)
-                .filter(Check.check_user_id == user_id)
-                .filter(Check.check_channel_id == channel_id)
-                .filter(Check.checked_at.between(check_start_time, check_end_time))
-                .order_by(desc(Check.checked_at))
-                .first()
-            )
-            return data
+        data = (
+            session.query(Check)
+            .filter(Check.check_user_id == user_id)
+            .filter(Check.check_channel_id == channel_id)
+            .filter(Check.checked_at.between(check_start_time, check_end_time))
+            .order_by(desc(Check.checked_at))
+            .first()
+        )
+        return data
 
     except Exception as e:
         traceback.print_exc()

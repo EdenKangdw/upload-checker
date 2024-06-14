@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from api_model.model import ChannelModel
 from sqlalchemy.orm import Session
-from database.query import add_check, get_check, get_today_check
+from database.query import add_check, get_check, get_period_check
 from database.schema import Check
 from util.auth import get_current_user
 from database.conn import db
@@ -92,3 +92,56 @@ async def post_check_late_api(
     return check_result
 
 
+@app.get("/", status_code=200)
+async def get_check_api(
+    channel_id: int = Query(default=0),
+    checked_at: str = Query(default=None),
+    token: HTTPBearer = Depends(oauth2_scheme),
+    session: Session = Depends(db.session),
+):
+    """
+    채널 아이디를 확인하여, 현재 유저가 출석을 했는지 여부를 확인하여 출석 정보를 return 합니다.
+    - 당일 기준시간 이전의 체크가 존재하면, check 이력을 return 하고
+    - 당일 기준시간 이전의 체크가 존재하지 않으면, None을 return 합니다.
+    - 토요일이면 기준 시간은 오후 12시가 됨
+    """
+    # check user
+    user = await get_current_user(token)
+
+    checked_at = (
+        datetime.strptime(checked_at, "%Y-%m-%d") if checked_at else datetime.now()
+    )
+
+    SATURDAY_CHECK_TIME = 12
+    # check saturday
+    if checked_at.weekday() == 5:
+        # 토요일에는 체크
+        check_start_time = datetime.combine(
+            checked_at.date(), time(SATURDAY_CHECK_TIME, 0)
+        )
+        check_end_time = datetime.combine(checked_at.date(), time(23, 59, 59))
+    else:
+        STANDARD_CHECK_TIME = 18
+        if datetime.now().time().hour < STANDARD_CHECK_TIME:
+            check_end_time = datetime.combine(
+                checked_at.date(), time(STANDARD_CHECK_TIME, 0)
+            )
+            check_start_time = check_end_time - timedelta(days=1)
+        else:
+            check_start_time = datetime.combine(
+                checked_at.date(), time(STANDARD_CHECK_TIME, 0)
+            )
+            check_end_time = check_start_time + timedelta(days=1)
+    # print(check_start_time)
+    # print(check_end_time)
+
+    # get current_date check
+    check_result = get_period_check(
+        session,
+        channel_id=channel_id,
+        user_id=user.user_id,
+        start_check_time=check_start_time,
+        end_check_time=check_end_time,
+    )
+
+    return check_result
