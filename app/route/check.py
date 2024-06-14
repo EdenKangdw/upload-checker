@@ -140,8 +140,8 @@ async def get_check_api(
         session,
         channel_id=channel_id,
         user_id=user.user_id,
-        start_check_time=check_start_time,
-        end_check_time=check_end_time,
+        check_start_time=check_start_time,
+        check_end_time=check_end_time,
     )
 
     return check_result
