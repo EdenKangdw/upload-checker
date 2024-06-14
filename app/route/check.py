@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from api_model.model import ChannelModel
 from sqlalchemy.orm import Session
+from util.check import is_check_time_in_range
 from database.query import add_check, get_check, get_period_check
 from database.schema import Check
 from util.auth import get_current_user
@@ -33,16 +34,18 @@ async def post_check_api(
         datetime.strptime(checked_at, "%Y-%m-%d") if checked_at else datetime.now()
     )
 
-    # check
-    check = Check(
-        check_channel_id=channel_id,
-        check_user_id=user.user_id,
-        checked_at=checked_at,
-    )
+    if is_check_time_in_range(checked_at):
 
-    added_check = add_check(session, check)
-    if not added_check:
-        return JSONResponse({"error": "duplicated check"}, status_code=500)
+        # check
+        check = Check(
+            check_channel_id=channel_id,
+            check_user_id=user.user_id,
+            checked_at=checked_at,
+        )
+
+        added_check = add_check(session, check)
+        if not added_check:
+            return JSONResponse({"error": "duplicated check"}, status_code=500)
 
     # get check
     check_result = get_check(session, user.user_id, channel_id, checked_at)
