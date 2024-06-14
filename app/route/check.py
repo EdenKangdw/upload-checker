@@ -67,7 +67,8 @@ async def post_check_late_api(
     # check user
     user = await get_current_user(token)
 
-    STANDARD_CHECK_TIME = 18
+    checked_datetime = datetime.strptime(checked_at, "%Y-%m-%d")
+    STANDARD_CHECK_TIME = 12 if checked_datetime.weekday() == 5 else 18
 
     # check date
     checked_at = datetime.combine(
