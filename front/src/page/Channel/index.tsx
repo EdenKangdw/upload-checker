@@ -347,7 +347,7 @@ export default function ChannelRoom() {
             <tr className="tr border-b border-solid border-[#B9D7EA]">
               <th>날짜</th>
               <th>나의 출석 여부</th>
-              <th>변경</th>
+              <th>출석체크 변경</th>
             </tr>
           </thead>
           <tbody>
@@ -357,7 +357,7 @@ export default function ChannelRoom() {
                 <td>{item.check}</td>
                 <td>
                   <button type="button" className="button1" onClick={() => fetchPostCheckLateDate(item.date)}>
-                    출석체크
+                    변경
                   </button>
                 </td>
               </tr>

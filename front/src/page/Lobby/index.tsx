@@ -70,7 +70,7 @@ export default function Lobby() {
     <div className="wrapper items-start justify-start">
       <div className="w-full flex justify-between items-center">
         <p className="text-[#3A4D39]"><em className="font-bold text-3xl">{user_nickname || user_name}</em> 님</p>
-        <button className="button before:content-plusIcon before:inline-block before:w-6 before:align-middle" type="button" onClick={() => navigate("/channel/create")}>
+        <button className="button1 before:content-plusIcon before:inline-block before:w-6 before:align-middle" type="button" onClick={() => navigate("/channel/create")}>
           채널 생성
         </button>
       </div>
