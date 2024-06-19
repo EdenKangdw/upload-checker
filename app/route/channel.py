@@ -215,14 +215,14 @@ async def get_check_channel_api(
                 )
             else:
                 checks = get_channel_checks(session, channel_id, current_date_str)
-            if checks:
-                datetime_checks = list(map(lambda x: x.user_name, checks))
-                check = {
-                    "date": f"{current_date_str}({week_day})",
-                    "checks": datetime_checks,
-                }
-                channel_check_list.append(check)
-                print("checks: %s" % datetime_checks)
+
+            datetime_checks = list(map(lambda x: x.user_name, checks))
+            check = {
+                "date": f"{current_date_str}({week_day})",
+                "checks": datetime_checks,
+            }
+            channel_check_list.append(check)
+            print("checks: %s" % datetime_checks)
 
     return channel_check_list
 
