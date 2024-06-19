@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from api_model.model import ChannelModel
 from sqlalchemy.orm import Session
-from util.check import prayer_check_dates
+from util.check import kor_week_day, prayer_check_dates
 from database.query import (
     add_channel,
     add_user_channel,
@@ -23,7 +23,6 @@ from database.conn import db
 
 oauth2_scheme = HTTPBearer()
 app = APIRouter()
-KOR_WEEK_DAY_LIST = ["월", "화", "수", "목", "금", "토", "일"]
 
 
 @app.post("", status_code=200)
@@ -208,7 +207,7 @@ async def get_check_channel_api(
     for target_datetime in period_array:
         current_date_str = target_datetime.strftime("%Y-%m-%d")
         if current_date_str in prayer_check_dates():
-            week_day = KOR_WEEK_DAY_LIST[target_datetime.weekday()]
+            week_day = kor_week_day(target_datetime)
             if permission_group_ids:
                 checks = get_channel_group_checks(
                     session, channel_id, current_date_str, permission_group_ids

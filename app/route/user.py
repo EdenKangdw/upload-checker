@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from api_model.model import ChannelModel, UpdateUserModel
 from sqlalchemy.orm import Session
-from util.check import is_check_time_in_range, prayer_check_dates
+from util.check import is_check_time_in_range, kor_week_day, prayer_check_dates
 from database.query import (
     add_group_user,
     get_group_users,
@@ -145,7 +145,7 @@ async def user_check(
                     )
 
                 check["date"] = (
-                    f"{target_date.strftime('%Y-%m-%d')}({target_date.weekday()})"
+                    f"{target_date.strftime('%Y-%m-%d')}({kor_week_day(target_date)})"
                 )
                 result.append(check)
 
