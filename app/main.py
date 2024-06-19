@@ -91,21 +91,25 @@ async def dummy_user(user_name: str, session: Session = Depends(db.session)):
 async def dummy_check(
     channel_id: int = Body(default=0),
     user_id: int = Body(default=0),
+    target_date: str = Body(default=None),
     session: Session = Depends(db.session),
 ):
     """
     dummy로 체크할 수 있는 api 입니다. 채널과 유저 아이디를 받아 체크합니다.
     """
 
+    checked_at = (
+        datetime.strptime(target_date, "%Y-%m-%d") if target_date else datetime.now()
+    )
+
     # dummy check
     check = Check(
-        check_channel_id=channel_id,
-        check_user_id=user_id,
+        check_channel_id=channel_id, check_user_id=user_id, checked_at=checked_at
     )
     add_check(session, check)
 
     # get check
-    today = datetime.now()
-    check_result = get_check(session, user_id, channel_id, today)
+
+    check_result = get_check(session, user_id, channel_id, checked_at)
 
     return check_result
