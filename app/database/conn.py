@@ -31,6 +31,10 @@ class engineconn:
         db = self.sessionmaker()
         try:
             yield db
+            db.commit()
+        except:
+            db.rollback()
+            raise
         finally:
             db.close()
 
