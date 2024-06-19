@@ -38,3 +38,11 @@ def prayer_check_dates():
         "2024-07-11",
         "2024-07-13",
     ]
+
+
+def kor_week_day(datetime):
+    """
+    datetime을 넣으면 요일을 알려줍니다.
+    """
+    KOR_WEEK_DAY_LIST = ["월", "화", "수", "목", "금", "토", "일"]
+    return KOR_WEEK_DAY_LIST[datetime.weekday()]
