@@ -309,9 +309,9 @@ def get_period_check(session, user_id, channel_id, check_start_time, check_end_t
 from sqlalchemy import func, cast, Date
 
 
-def get_channel_group_checks(session, channel_id, created_at, group_ids):
+def get_channel_group_checks(session, channel_id, checked_at, group_ids):
     try:
-        if created_at is not None:
+        if checked_at is not None:
             data = (
                 session.query(
                     Check.check_user_id, func.max(User.user_name).label("user_name")
@@ -320,7 +320,7 @@ def get_channel_group_checks(session, channel_id, created_at, group_ids):
                 .join(GroupUser, Check.check_user_id == GroupUser.user_id)
                 .filter(Check.check_channel_id == channel_id)
                 .filter(GroupUser.group_id.in_(group_ids))
-                .filter(cast(Check.created_at, Date) == created_at)
+                .filter(cast(Check.checked_at, Date) == checked_at)
                 .group_by(Check.check_user_id)
                 .all()
             )
@@ -341,14 +341,14 @@ def get_channel_group_checks(session, channel_id, created_at, group_ids):
         return None
 
 
-def get_channel_checks(session, channel_id: int, created_at=None) -> User:
+def get_channel_checks(session, channel_id: int, checked_at=None) -> User:
     try:
-        if created_at is not None:
+        if checked_at is not None:
             data = (
                 session.query(Check.check_user_id, User.user_name)
                 .join(User, Check.check_user_id == User.user_id)
                 .filter(Check.check_channel_id == channel_id)
-                .filter(cast(Check.created_at, Date) == created_at)
+                .filter(cast(Check.checked_at, Date) == checked_at)
                 .group_by(Check.check_user_id)
                 .all()
             )
