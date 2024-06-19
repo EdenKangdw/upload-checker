@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from api_model.model import ChannelModel, UpdateUserModel
 from sqlalchemy.orm import Session
-from util.check import is_check_time_in_range
+from util.check import is_check_time_in_range, prayer_check_dates
 from database.query import (
     add_group_user,
     get_group_users,
@@ -120,6 +120,15 @@ async def user_check(
     # get period
     start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
     end_datetime = datetime.strptime(end_date, "%Y-%m-%d")
+
+    # TODO : 기도회 기간으로 기간제한
+    prayer_start_date = datetime.strptime("2024-06-08", "%Y-%m-%d")
+    prayer_end_date = datetime.strptime("2024-07-13", "%Y-%m-%d")
+    if start_datetime < prayer_start_date:
+        start_datetime = prayer_start_date
+    if end_datetime > prayer_end_date:
+        prayer_end_date
+
     period_array = [
         start_datetime + timedelta(days=x)
         for x in range((end_datetime - start_datetime).days + 1)
@@ -128,13 +137,15 @@ async def user_check(
     for target_date in period_array:
         check = {"date": "", "check": "X"}
         for checked_datetime in checked_datetime_list:
-            if target_date.date() == checked_datetime.date():
-                check["check"] = (
-                    "O" if is_check_time_in_range(checked_datetime) else "X"
-                )
+            # 기도회 기간 제한
+            if target_date.strftime("%Y-%m-%d") in prayer_check_dates():
+                if target_date.date() == checked_datetime.date():
+                    check["check"] = (
+                        "O" if is_check_time_in_range(checked_datetime) else "X"
+                    )
 
-        check["date"] = target_date.strftime("%Y-%m-%d")
-        result.append(check)
+                check["date"] = f"{target_date.strftime("%Y-%m-%d")}({target_date.weekday()})"
+                result.append(check)
 
     return result
 
