@@ -284,7 +284,8 @@ def get_check(session, user_id, channel_id, checked_at=None):
         )
 
     except Exception as e:
-        traceback.print_exc(e)
+        logger.info("QUERY ERROR - get_check")
+        traceback.print_exc()
         return None
 
 
@@ -302,6 +303,41 @@ def get_period_check(session, user_id, channel_id, check_start_time, check_end_t
 
     except Exception as e:
         traceback.print_exc()
+        return None
+
+
+from sqlalchemy import func, cast, Date
+
+
+def get_channel_group_checks(session, channel_id, created_at, group_ids):
+    try:
+        if created_at is not None:
+            data = (
+                session.query(
+                    Check.check_user_id, func.max(User.user_name).label("user_name")
+                )
+                .join(User, Check.check_user_id == User.user_id)
+                .join(GroupUser, Check.check_user_id == GroupUser.user_id)
+                .filter(Check.check_channel_id == channel_id)
+                .filter(GroupUser.group_id.in_(group_ids))
+                .filter(cast(Check.created_at, Date) == created_at)
+                .group_by(Check.check_user_id)
+                .all()
+            )
+            return data
+        return (
+            session.query(
+                Check.check_user_id, func.max(User.user_name).label("user_name")
+            )
+            .join(User, Check.check_user_id == User.user_id)
+            .join(GroupUser, Check.check_user_id == GroupUser.user_id)
+            .filter(GroupUser.group_id.in_(group_ids))
+            .filter(Check.check_channel_id == channel_id)
+            .group_by(Check.check_user_id)
+            .all()
+        )
+    except Exception as e:
+        print(e)
         return None
 
 
