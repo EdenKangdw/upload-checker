@@ -4,13 +4,16 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from api_model.model import ChannelModel
 from sqlalchemy.orm import Session
+from util.check import prayer_check_dates
 from database.query import (
     add_channel,
     add_user_channel,
     get_channel,
     get_channel_checks,
+    get_channel_group_checks,
     get_channel_with_code,
     get_channel_with_name,
+    get_group_users,
     get_user_channel_info,
     update_group_user,
 )
@@ -20,6 +23,7 @@ from database.conn import db
 
 oauth2_scheme = HTTPBearer()
 app = APIRouter()
+KOR_WEEK_DAY_LIST = ["월", "화", "수", "목", "금", "토", "일"]
 
 
 @app.post("", status_code=200)
@@ -137,7 +141,7 @@ async def post_channel_user_api(
     user_channel = get_user_channel_info(session, channel_id, user.user_id)
     if not user_channel:
         return JSONResponse({"error": "Can't get channel user"}, status_code=500)
-    if user_channel.type != "CREATOR":
+    if user_channel.user_type != "CREATOR":
         return JSONResponse({"error": "You are not creator"}, status_code=500)
 
     # update group user
@@ -160,42 +164,65 @@ async def get_check_channel_api(
 ):
     """
     채널의 생성자가 사용합니다. 채널 내, 일정 기간동안 체크한 사람의 목록을 확인힐 수 있습니다.
+    - is_manager : True 인 경우만 사용합니다.
     """
 
     # check user
     user = await get_current_user(token)
     print("user: %s" % user.user_id)
 
-    # check group leader
-
-    # check channel creator
-    # channel = await get_channel(session, channel_id)
-    # print("channel: %s" % channel.channel_creator_id, channel.channel_id)
-    # if channel is None:
-    #     return None
-    # if channel.channel_creator_id != user.user_id:
-    #     return "채널의 생성자가 아닙니다"
+    # TODO: check user's permissions :  - 나중에 변경될 예정
+    user_channel = get_user_channel_info(session, channel_id, user.user_id)
+    if user_channel.user_type == "MEMBER":
+        return JSONResponse({"error": "유저 권한 없음"}, status_code=500)
 
     # get period
-
     end_date = start_date if end_date == "" else end_date
     start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
     end_datetime = datetime.strptime(end_date, "%Y-%m-%d")
+
+    # TODO : 기도회 기간으로 기간제한
+    prayer_start_date = datetime.strptime("2024-06-08", "%Y-%m-%d")
+    prayer_end_date = datetime.strptime("2024-07-13", "%Y-%m-%d")
+    if start_datetime < prayer_start_date:
+        start_datetime = prayer_start_date
+    if end_datetime > prayer_end_date:
+        prayer_end_date
+
     period_array = [
         start_datetime + timedelta(days=x)
         for x in range((end_datetime - start_datetime).days + 1)
     ]
 
+    # get user's group
+    user_group_list = get_group_users(session, user.user_id)
+    print(user_group_list[0])
+    permission_group_list = list(filter(lambda x: x.type != "MEMBER", user_group_list))
+    print(permission_group_list[0])
+    print("@@@@@@@")
+    permission_group_ids = [x.group_id for x in permission_group_list]
+
     # get checks
     channel_check_list = []
-    print(period_array)
+    # print(period_array)
     for target_datetime in period_array:
         current_date_str = target_datetime.strftime("%Y-%m-%d")
-        checks = get_channel_checks(session, channel_id, current_date_str)
-        datetime_checks = list(map(lambda x: x.user_name, checks))
-        check = {"date": current_date_str, "checks": datetime_checks}
-        channel_check_list.append(check)
-        print("checks: %s" % datetime_checks)
+        if current_date_str in prayer_check_dates():
+            week_day = KOR_WEEK_DAY_LIST[target_datetime.weekday()]
+            if permission_group_ids:
+                checks = get_channel_group_checks(
+                    session, channel_id, current_date_str, permission_group_ids
+                )
+            else:
+                checks = get_channel_checks(session, channel_id, current_date_str)
+            if checks:
+                datetime_checks = list(map(lambda x: x.user_name, checks))
+                check = {
+                    "date": f"{current_date_str}({week_day})",
+                    "checks": datetime_checks,
+                }
+                channel_check_list.append(check)
+                print("checks: %s" % datetime_checks)
 
     return channel_check_list
 
