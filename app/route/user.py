@@ -144,7 +144,9 @@ async def user_check(
                         "O" if is_check_time_in_range(checked_datetime) else "X"
                     )
 
-                check["date"] = f"{target_date.strftime("%Y-%m-%d")}({target_date.weekday()})"
+                check["date"] = (
+                    f"{target_date.strftime('%Y-%m-%d')}({target_date.weekday()})"
+                )
                 result.append(check)
 
     return result
