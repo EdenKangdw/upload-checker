@@ -146,7 +146,7 @@ async def user_check(
                     check["check"] = (
                         "O" if is_check_time_in_range(checked_datetime) else "X"
                     )
-                result.append(check)
+            result.append(check)
 
     return result
 
