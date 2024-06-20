@@ -142,9 +142,10 @@ async def user_check(
         for checked_datetime in checked_datetime_list:
             # 기도회 기간 제한
             if target_date.date() == checked_datetime.date():
-                check["check"] = (
-                    "O" if is_check_time_in_range(checked_datetime) else "X"
-                )
+                if target_date.strftime("%Y-%m-%d") in prayer_check_dates():
+                    check["check"] = (
+                        "O" if is_check_time_in_range(checked_datetime) else "X"
+                    )
                 result.append(check)
 
     return result
