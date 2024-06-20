@@ -135,7 +135,10 @@ async def user_check(
     ]
 
     for target_date in period_array:
-        check = {"date": "", "check": "X"}
+        check = {
+            "date": f"{target_date.strftime('%Y-%m-%d')}({kor_week_day(target_date)})",
+            "check": "X",
+        }
         for checked_datetime in checked_datetime_list:
             # 기도회 기간 제한
             if target_date.strftime("%Y-%m-%d") in prayer_check_dates():
@@ -143,11 +146,7 @@ async def user_check(
                     check["check"] = (
                         "O" if is_check_time_in_range(checked_datetime) else "X"
                     )
-
-                    check["date"] = (
-                        f"{target_date.strftime('%Y-%m-%d')}({kor_week_day(target_date)})"
-                    )
-                    result.append(check)
+                result.append(check)
 
     return result
 
