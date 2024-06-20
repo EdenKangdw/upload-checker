@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import instance from "../../api/axiosConfig";
-import { getMyCheckList } from "../../types/channel";
+import { getCheckPeriodList, getMyCheckList } from "../../types/channel";
 import HomeIcon from  '../../assets/images/icon/ico-home.svg'
+import CloseIcon from  '../../assets/images/icon/ico-close.svg'
 import DatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ko } from 'date-fns/locale';
 import dayjs from "dayjs";
+import classnames from "classnames";
 registerLocale('ko', ko);
 
 export default function ChannelRoom() {
@@ -14,17 +16,12 @@ export default function ChannelRoom() {
   const { data }= location.state || {};
   const navigate = useNavigate();
 
+  const [openChecksModal, setOpenChecksModal] = useState<{open: boolean; checks: string[]}>({open: false, checks: []});
   const [checked, setChecked] = useState<boolean>(false);
-  // const [activeTab, setActiveTab] = useState<"DAY" | "PERIOD" | "MY_ATTENDANCE">("DAY");
-  // const [totalCheckList, setTotalCheckList] = useState<getCheckPeriodList[]>([]); // 기간 조회
-  // const [todayCheckList, setTodayCheckList] = useState<getCheckPeriodList[]>([]); // 하루 조회
+  const [activeTab, setActiveTab] = useState<"PERIOD" | "MY_ATTENDANCE">("MY_ATTENDANCE");
   const [myCheckList, setMyCheckList] = useState<getMyCheckList[]>([]); // 나의 출석 조회
-  // const [startDate, setStartDate] = useState<Date | null>(new Date());
-  // const [endDate, setEndDate] = useState<Date | null>(new Date());
-  // const [checkedAt, setCheckedAt] = useState<Date | null>(null);
-  // const [summarySwitch, setSummarySwitch] = useState(true);
-
-  const [dateRange, setDateRange] = useState([new Date(), null]);
+  const [channelUserCheckList, setChannelUserCheckList] = useState<getCheckPeriodList[]>([]); // 채널유너들 출석 조회
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const [startDate, endDate] = dateRange;
 
   const fetchPostAttendanceCheck = async () => {
@@ -32,7 +29,6 @@ export default function ChannelRoom() {
       await instance.post("/check", {
         channel_id: data.channel.channel_id,
       }).then(res => {
-        console.log("서버 응답:", res);
         if(res.data === null) return alert("지금은 체크 시간이 아닙니다. 평일(18:00-23:59), 토요일(12:00-23:59)에 다시 시도해 주세요.")
         fetchGetAttendanceCheck();
       });
@@ -40,54 +36,6 @@ export default function ChannelRoom() {
       console.error("오류 발생:", error);
     };
   };
-
-  // const getTodayCheckList = async () => {
-  //   try {
-  //     setEndDate(null);
-  //     await instance.get(`/channel/check`, {
-  //       params: {
-  //         channel_id: channel_id,
-  //         start_date: startDate && startDate.toISOString().split("T")[0],
-  //         end_date: "",
-  //       },
-  //     }).then(res => {
-  //       setTotalCheckList([]);
-  //       setMyCheckList([]);
-  //       setTodayCheckList(res.data);
-  //     })
-  //   } catch (error) {
-  //     console.error("오류 발생:", error);
-  //   }
-  // };
-
-  // const getTotalCheckList = async () => {
-  //   try {
-  //     if (!(startDate && endDate)) {
-  //       alert("기간 조회를 위해 시작일과 종료일을 지정해주세요.");
-  //       return false;
-  //     }
-
-  //     if (startDate > endDate) {
-  //       alert("시작일이 종료일보다 뒤에 있습니다.");
-  //       return false;
-  //     }
-
-  //     // 체크 리스트 요청을 보냄
-  //     const response = await instance.get("/channel/check", {
-  //       params: {
-  //         channel_id: channel_id,
-  //         start_date: startDate.toISOString().split("T")[0],
-  //         end_date: endDate !== null ? endDate.toISOString().split("T")[0] : "",
-  //       },
-  //     });
-  //     console.log("서버 응답:", response.data);
-  //     setTodayCheckList([]);
-  //     setMyCheckList([]);
-  //     setTotalCheckList(response.data);
-  //   } catch (error) {
-  //     console.error("오류 발생:", error);
-  //   }
-  // };
 
   // 본인 출석체크 기간 조회
   const fetchGetMyCheckList = async () => {
@@ -98,8 +46,24 @@ export default function ChannelRoom() {
       await instance.get(
         `/user/check?channel_id=${data.channel.channel_id}&start_date=${dayjs(startDate).format('YYYY-MM-DD')}&end_date=${dayjs(endDate).format('YYYY-MM-DD')}`
       ).then(res => {
-        console.log("서버 응답:", res.data);
+        // console.log("서버 응답:", res.data);
         setMyCheckList(res.data);
+      });
+    } catch (error) {
+      console.error("오류 발생:", error);
+    };
+  };
+
+  // 기간 채널 유저들 출석 조회 
+  const fetchGetChannelUserCheckList = async () => {
+    try {
+      if(!(startDate && endDate)) return alert("시작일과 종료일을 지정해주세요.");
+      if(startDate > endDate) return alert("시작일이 종료일보다 뒤에 있습니다.");
+
+      await instance.get(
+        `/channel/check?channel_id=${data.channel.channel_id}&start_date=${dayjs(startDate).format('YYYY-MM-DD')}&end_date=${dayjs(endDate).format('YYYY-MM-DD')}`
+      ).then(res => {
+        setChannelUserCheckList(res.data);
       });
     } catch (error) {
       console.error("오류 발생:", error);
@@ -132,10 +96,29 @@ export default function ChannelRoom() {
     };
   };
 
+  // 하루 전날
+  const handleGetYesterday = () => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    return yesterday;
+  };
+
+  const handleCheckAttendance = () => {
+    const checkHandler = {
+      PERIOD: fetchGetChannelUserCheckList,
+      MY_ATTENDANCE: fetchGetMyCheckList,
+    };
+    return checkHandler[activeTab]();
+  };
+
   useEffect(() => {
     fetchGetAttendanceCheck();
   }, []);
 
+  useEffect(() => {
+    setDateRange([null, null]);
+  }, [activeTab]);
 
   return (
     <div className="wrapper gap-5">
@@ -145,212 +128,90 @@ export default function ChannelRoom() {
 
       <p className="title">{data.channel.channel_name}</p>
 
-<     div>
+      <div>
         <div className="flex flex-wrap justify-between items-center">
           <p>출석체크 여부 : {checked ? "O": "X"}</p>
           <button className="button" type="button" onClick={fetchPostAttendanceCheck} disabled={checked}>출석체크</button>
         </div>
-        <div className="text-[#D72323]">* 평일(18:00-23:59), 토요일(12:00-23:59)에 체크 가능합니다.</div>
+        <p className="text-[#D72323]">* 평일(18:00-23:59), 토요일(12:00-23:59)에 체크 가능합니다.</p>
       </div>
 
-      <div className="w-full">
-        <p>나의 출석 현황 조회</p>
-        <div className="flex justify-between items-center gap-2 mt-2">
-          <div className="flex-auto">
-            <DatePicker
-              className="w-full px-2 py-1 rounded-md"
-              selectsRange={true}
-              startDate={startDate}
-              endDate={endDate}
-              onChange={(update) => setDateRange(update)}
-              withPortal
-              locale={ko}
-              dateFormat="yyyy/MM/dd"
-              placeholderText="시작일 - 종료일"
-              isClearable // 입력값 지우는 clear 버튼
-              maxDate={new Date()}
-            />
-          </div>
-          <button className="button flex-none" type="button" onClick={fetchGetMyCheckList}>
-            조회
-          </button>
-        </div>
-      </div>
-
-      {/* <div>
-        <p className="mb-4">이전 날짜 지정해서 체크하기</p>
-        <label className="relative inline-block">시작일 : 
-          <DatePicker
-            className="bg-transparent cursor-pointer border-b-2 border-button outline-none"
-            dateFormat='yyyy.MM.dd' 
-            shouldCloseOnSelect 
-            selected={startDate}
-            onChange={(date) => setStartDate(date)}
-            locale="ko"
-            showIcon
-          />
-        </label>
-
-        <label className="relative inline-block">종료일 : 
-          <DatePicker 
-            className="bg-transparent cursor-pointer border-b-2 border-button outline-none"
-            dateFormat='yyyy.MM.dd' 
-            shouldCloseOnSelect 
-            selected={endDate} 
-            onChange={(date) => setEndDate(date)} 
-            locale="ko"
-            showIcon
-          />
-      </label>
-      <button type="button" onClick={() => {}}>조회</button>
-      </div> */}
-
-
-{/* 
-      <label className="relative inline-block">이전 날짜 지정해서 체크하기
-          <DatePicker
-            className="bg-transparent cursor-pointer border-b-2 border-button outline-none"
-            dateFormat='yyyy.MM.dd' 
-            shouldCloseOnSelect 
-            selected={checkedAt}
-            onChange={(date) => setCheckedAt(date)}
-            locale={ko}
-            showIcon
-          />
-        </label> */}
-
-
-      {/* <div>
-        <label className="relative inline-block">시작일 : 
-          <DatePicker
-            className="bg-primary cursor-pointer border-b outline-none"
-            dateFormat='yyyy.MM.dd' 
-            shouldCloseOnSelect 
-            selected={startDate}
-            onChange={(date) => setStartDate(date)}
-            locale="ko"
-            showIcon
-          />
-        </label>
-
-        <label className="relative inline-block">종료일 : 
-          <DatePicker 
-            className="bg-primary cursor-pointer border-b outline-none"
-            dateFormat='yyyy.MM.dd' 
-            shouldCloseOnSelect 
-            selected={endDate} 
-            onChange={(date) => setEndDate(date)} 
-          />
-       </label>
-      </div> */}
-      
-     <div className="flex justify-between items-center gap-2">
-        {/* <button
-          className={classNames("tab", {" bg-primary-1": activeTab === "DAY"} )}
+      <div>
+        <button 
           type="button" 
-          onClick={() => {
-            setActiveTab("DAY");
-            getTodayCheckList();
-          }}
+          className={classnames("w-6/12 px-2 py-0.5 border border-button-2", {"bg-button-2": activeTab === "MY_ATTENDANCE"})} 
+          onClick={() => setActiveTab("MY_ATTENDANCE")}
         >
-          하루 조회
+          나의 출석 조회
         </button>
         <button 
-          className={classNames("tab", {"bg-primary-1": activeTab === "PERIOD"} )}
           type="button" 
-          onClick={() => {
-            setActiveTab("PERIOD"); 
-            getTotalCheckList();
-            }}
-          >
-            기간 조회
-        </button> */}
-        
+          className={classnames("w-6/12 px-2 py-0.5 border border-button-2", {"bg-button-2": activeTab === "PERIOD"})} 
+          onClick={() => setActiveTab("PERIOD")}
+        >
+          기간 인원 조회
+        </button>
       </div>
-     
-    
 
-      {/* {totalCheckList.length > 0 && (
-        <table className="tableWithBorder">
-          <thead>
-            <tr>
-              <th>날짜</th>
-              <th>출석 수</th>
-              <th>출석자</th>
-            </tr>
-          </thead>
-          <tbody>
-            {totalCheckList.map((entry, index) => (
-              <tr key={index} onClick={() => setSummarySwitch(!summarySwitch)}>
-                <td>{entry.date}</td>
-                <td>{entry.checks.length}</td>
-                <td>
-                  {summarySwitch ? (
-                    <ul
-                      style={{ listStyleType: "none", paddingInlineStart: "0" }}
-                    >
-                      {entry.checks.length > 0 ? (
-                        <li key={index}>
-                          {entry.checks.length > 1
-                            ? `${entry.checks[0]} 외 ${
-                                entry.checks.length - 1
-                              } 명`
-                            : entry.checks[0]}
-                        </li>
-                      ) : (
-                        <li key={index}>-</li>
-                      )}
-                    </ul>
-                  ) : (
-                    <ul
-                      style={{ listStyleType: "none", paddingInlineStart: "0" }}
-                    >
-                      {entry.checks.map((user, userIndex) => (
-                        <li key={userIndex}>{user}</li>
-                      ))}
-                    </ul>
-                  )}
-                </td>
+      <div className="flex justify-between items-center gap-2 mt-2">
+        <div className="flex-auto">
+          <DatePicker
+            className="w-full px-2 py-1 rounded-md"
+            selectsRange={true}
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(update) => setDateRange(update)}
+            withPortal
+            locale={ko}
+            dateFormat="yyyy/MM/dd"
+            placeholderText="시작일 - 종료일"
+            isClearable // 입력값 지우는 clear 버튼
+            maxDate={new Date()}
+          />
+        </div>
+        <button className="button flex-none" type="button" onClick={handleCheckAttendance}>
+          조회
+        </button>
+      </div>
+
+      {activeTab !== "MY_ATTENDANCE" && channelUserCheckList.length > 0 && (
+        <div className="h-80">
+          <table className="w-full">
+            <thead>
+              <tr className="tr border-b border-solid border-[#B9D7EA]">
+                <th>날짜</th>
+                <th>출석 수</th>
+                <th>출석자</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      {todayCheckList.length > 0 && (
-        <table className="tableWithBorder">
-          <thead>
-            <tr>
-              <th>날짜</th>
-              <th>출석 수</th>
-              <th>출석한 사용자</th>
-            </tr>
-          </thead>
-          <tbody>
-            {todayCheckList.map((entry, index) => (
-              <tr key={index}>
-                <td>{entry.date}</td>
-                <td>{entry.checks.length}</td>
-                <td>
-                  <ul
-                    style={{ listStyleType: "none", paddingInlineStart: "0" }}
-                  >
-                    {entry.checks?.map((user, userIndex) => (
-                      <li key={userIndex}>{user}</li>
-                    ))}
-                  </ul>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )} */}
+            </thead>
+            <tbody>
+              {channelUserCheckList.map((item, idx) => (
+                <tr key={idx} className="tr" onClick={() => setActiveTab}>
+                  <td>{item.date}</td>
+                  <td>{item.checks.length}명</td>
+                  <td>
+                    <button 
+                      type="button"
+                      className="button"
+                      onClick={() => setOpenChecksModal({open: true, checks: item.checks})} 
+                      disabled={Boolean(!item.checks.length)}
+                    >
+                        출석자 보기
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )} 
     
-      {myCheckList.length > 0 && (
+      {activeTab === "MY_ATTENDANCE" && myCheckList.length > 0 && (
         <table>
           <thead>
             <tr className="tr border-b border-solid border-[#B9D7EA]">
               <th>날짜</th>
-              <th>나의 출석 여부</th>
+              <th>출석 여부</th>
               <th>출석체크 변경</th>
             </tr>
           </thead>
@@ -369,6 +230,21 @@ export default function ChannelRoom() {
           </tbody>
         </table>
       )} 
+
+      {openChecksModal.open && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="relative bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+            <div>{openChecksModal.checks.map(check => <span>{check}, </span>)}</div>
+            <button 
+              type="button"
+              className="absolute top-0 right-0 w-8"
+              onClick={() => setOpenChecksModal({open: false, checks: []})}
+            >
+              <img src={CloseIcon} alt="닫기" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -28,7 +28,10 @@ export default function GetUserInfo () {
 
   const getTeamList = async () => {
     try {
-      await instance.get("/group/list").then(res => setOptionList(res.data))
+      await instance.get("/group/list").then(res => {
+        setOptionList(res.data);
+        setGroupId(res.data[0].group_id);
+      })
     } catch (error) {
       console.error("오류 발생:", error);
     }
