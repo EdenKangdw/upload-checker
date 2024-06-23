@@ -68,6 +68,9 @@ async def get_dummy_user_token(
     session: Session = Depends(db.session),
     user_id: int = Query(..., description="유저 아이디"),
 ):
+    """
+    이미 생성한 유저 아이디로 token을 가져옵니다.
+    """
 
     # get user
     user_result = get_user_with_id(session, user_id)
