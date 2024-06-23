@@ -1,4 +1,4 @@
-from fastapi import Body, Depends, FastAPI, Request
+from fastapi import Body, Depends, FastAPI, Query, Request
 from database.query import *
 from database.conn import engineconn, db
 from database.base import Base
@@ -61,6 +61,24 @@ http://localhost:8000/oauth/kakao/redirect?code=914rIhV3Epl2n9ls6YZL3Kh766OxdsqO
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.get("/dummy/user", status_code=200, tags=["Test"])
+async def get_dummy_user_token(
+    session: Session = Depends(db.session),
+    user_id: int = Query(..., description="유저 아이디"),
+):
+
+    # get user
+    user_result = get_user_with_id(session, user_id)
+    if not user_result:
+        return JSONResponse({"error": "User not found"}, status_code=500)
+
+    # TODO : 더미 유저 생성 후, token도 같이 return
+    # get dummy user' token
+    token = encode_token(user_result.user_name)
+
+    return token
 
 
 @app.post("/dummy/user", status_code=200, tags=["Test"])
