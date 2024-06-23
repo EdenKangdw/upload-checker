@@ -96,6 +96,22 @@ def get_group_users(session: Session, user_id):
         return None
 
 
+def get_channel_group_user(session: Session, user_id, channel_id) -> dict:
+    try:
+        result = (
+            session.query(GroupUser, Group.group_name)
+            .join(Group, Group.channel_id == channel_id)
+            .filter(User.user_id == user_id)
+            .first()
+        )
+        if result:
+            group_user, group_name = result
+            return {"group_user": group_user, "group_name": group_name}
+    except Exception as e:
+        print(e)
+        return None
+
+
 def add_group_user(session: Session, group_user):
     try:
         checked_group_user = (

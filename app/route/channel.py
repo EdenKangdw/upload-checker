@@ -11,13 +11,14 @@ from database.query import (
     get_channel,
     get_channel_checks,
     get_channel_group_checks,
+    get_channel_group_user,
     get_channel_with_code,
     get_channel_with_name,
     get_group_users,
     get_user_channel_info,
     update_group_user,
 )
-from database.schema import Channel, UserChannel
+from database.schema import Channel, GroupUser, UserChannel
 from util.auth import get_current_user
 from database.conn import db
 
@@ -80,6 +81,7 @@ async def get_channel_user(
     채널 내 유저 정보를 return 합니다.
     - isManager : 채널 매니저 여부
     - isCreator : 채널 생성자 여부
+    - group : 채널 유저 소속 그룹 정보
     """
     # user check
     user = await get_current_user(token)
@@ -96,8 +98,19 @@ async def get_channel_user(
         "isManager": False,
         "isCreator": False,
     }
-    result["isManager"] = True if channel_user.type in ["MANAGER", "CREATOR"] else False
-    result["isCreator"] = True if channel_user.type == "CREATOR" else False
+
+    # 유저 group 정보 추출
+    channel_group_user = get_channel_group_user(session, user.user_id, channel_id)
+    if channel_group_user:
+        group_user: GroupUser = channel_group_user["group_user"]
+        group_name = channel_group_user["group_name"]
+        group = {"id": group_user.group_id, "name": group_name, "type": group_user.type}
+        result.update({"group": group})
+
+    result["isManager"] = (
+        True if channel_user.user_type in ["MANAGER", "CREATOR"] else False
+    )
+    result["isCreator"] = True if channel_user.user_type == "CREATOR" else False
     return result
 
 
