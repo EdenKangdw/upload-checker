@@ -18,6 +18,7 @@ def is_check_time_in_range(datetime_obj):
 def prayer_check_dates():
     return [
         "2024-06-08",
+        "2024-06-11",
         "2024-06-12",
         "2024-06-13",
         "2024-06-15",
@@ -40,9 +41,12 @@ def prayer_check_dates():
     ]
 
 
-def kor_week_day(datetime):
+def kor_week_day(date_time: datetime, date_str: str = None):
     """
-    datetime을 넣으면 요일을 알려줍니다.
+    datetime or date_str을 넣으면 요일을 알려줍니다.
     """
     KOR_WEEK_DAY_LIST = ["월", "화", "수", "목", "금", "토", "일"]
-    return KOR_WEEK_DAY_LIST[datetime.weekday()]
+    if date_time:
+        return KOR_WEEK_DAY_LIST[date_time.weekday()]
+    if date_str:
+        return KOR_WEEK_DAY_LIST[datetime.strptime(date_str, "%Y-%m-%d").weekday()]
