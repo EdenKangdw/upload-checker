@@ -27,6 +27,7 @@ async def post_group(
     # add group
     group = Group(
         group_name=group.name,
+        channel_id=group.channel_id,
     )
 
     # add group user

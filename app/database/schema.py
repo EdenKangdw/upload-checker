@@ -19,6 +19,7 @@ class Group(Base):
 
     group_id = Column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
     group_name = Column(String(30), nullable=False)
+    channel_id = Column(INTEGER, nullable=False)
     updated_at = Column(
         DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
     )
@@ -36,6 +37,19 @@ class GroupUser(Base):
         DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
     )
     created_at = Column(DateTime, default=func.current_timestamp())
+
+
+# TODO : 매핑 테이블 적용 필요
+# class ChannelGroup(Base):
+#     __tablename__ = "channel__group"
+
+#     id = Column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
+#     group_id = Column(INTEGER, nullable=False)
+#     channel_id = Column(INTEGER, nullable=False)
+#     updated_at = Column(
+#         DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
+#     )
+#     created_at = Column(DateTime, default=func.current_timestamp())
 
 
 class Channel(Base):
