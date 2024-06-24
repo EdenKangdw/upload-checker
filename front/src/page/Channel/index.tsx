@@ -9,12 +9,14 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { ko } from 'date-fns/locale';
 import dayjs from "dayjs";
 import classnames from "classnames";
+import { useChannelUserInfoStore } from "../../store/channelUser";
 registerLocale('ko', ko);
 
 export default function ChannelRoom() {
   const location = useLocation();
   const { data }= location.state || {};
   const navigate = useNavigate();
+  const isManager = useChannelUserInfoStore(state => state.isManager);
 
   const [openChecksModal, setOpenChecksModal] = useState<{open: boolean; checks: string[]}>({open: false, checks: []});
   const [checked, setChecked] = useState<boolean>(false);
@@ -144,13 +146,13 @@ export default function ChannelRoom() {
         >
           나의 출석 조회
         </button>
-        <button 
+        {isManager && <button 
           type="button" 
           className={classnames("w-6/12 px-2 py-0.5 border border-button-2", {"bg-button-2": activeTab === "PERIOD"})} 
           onClick={() => setActiveTab("PERIOD")}
         >
           기간 인원 조회
-        </button>
+        </button>}
       </div>
 
       <div className="flex justify-between items-center gap-2 mt-2">
@@ -218,7 +220,7 @@ export default function ChannelRoom() {
           <tbody>
             {myCheckList.map((item, idx) => (
               <tr key={idx} className="tr">
-                <td>{item.date}</td>
+                <td>{item.date}({item.week_day})</td>
                 <td>{item.check}</td>
                 <td>
                   <button type="button" className="button1" onClick={() => fetchPostCheckLateDate(item.date)}>

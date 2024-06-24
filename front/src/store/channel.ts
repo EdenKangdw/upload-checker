@@ -18,8 +18,8 @@ const initialState: ChannelInfo = {
   updated_at: "", 
 }
 
-export const useChannelInfoStore = create<ChannelInfo & Actions>()(
-  persist(
+export const useChannelInfoStore = create<ChannelInfo & Actions>(
+  // persist(
     (set) => ({
       ...initialState,
       setChannelInfo: (payload: ChannelInfo) => set((state) => ({  
@@ -34,10 +34,10 @@ export const useChannelInfoStore = create<ChannelInfo & Actions>()(
         updated_at: state.updated_at = payload.updated_at, 
       })),
     }),
-    {
-      name: 'channel-info', // name of item in the storage (must be unique)
-      // storage: createJSONStorage(() => sessionStorage), // (optional) by default the 'localStorage' is used
-      // partialize: (state) => ({ bears: state.bears }),
-    },
-  ),
+    // {
+    //   name: 'channel-info', // name of item in the storage (must be unique)
+    //   // storage: createJSONStorage(() => sessionStorage), // (optional) by default the 'localStorage' is used
+    //   // partialize: (state) => ({ bears: state.bears }),
+    // },
+  // ),
 );

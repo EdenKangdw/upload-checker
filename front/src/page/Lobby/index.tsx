@@ -2,24 +2,23 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import instance from "../../api/axiosConfig";
 import { ChannelListItem } from "../../types/channel";
+import { useChannelUserInfoStore } from "../../store/channelUser";
 
 export default function Lobby() {
   const navigate = useNavigate();
+  const setChannelUserInfo = useChannelUserInfoStore(state => state.setChannelUserInfo);
 
   const [channelCode, setChannelCode] = useState<string>("");
   const [myChannelList, setMyChannelList] = useState<ChannelListItem[]>([]);
-  const [myName, setMyName] = useState<{username:string; nickname:string}>({
-    username: "",
-    nickname: "",
-  });
+  const [myName, setMyName] = useState<string>("");
 
-  const postJoinChannel = async () => {
+  const fetchPostJoinChannel = async () => {
     try {
       await instance.post("/channel/join", {
         channel_code: channelCode,
       }).then(res => {
         console.log('res', res)
-        getMyChannelList();
+        fetchGetMyChannelList();
         setChannelCode("");
         // if(!res.data.channel) { 
         //   alert("채널이 존재하지 않습니다."); 
@@ -33,10 +32,20 @@ export default function Lobby() {
     }
   };
 
-  const getEnterChannel = async (channelId: number) => {
+  const fetchGetMyChannelList = async () => {
+    try {
+      await instance.get("/user/channel").then(res => {
+        res.data && setMyChannelList(res.data);
+      })
+    } catch (error) {
+      console.error("오류 발생:", error);
+    }
+  };
+
+  const fetchGetEnterChannel = async (channelId: number) => {
     try {
       await instance.get(`/channel?channel_id=${channelId}`).then(res => {
-        // setChannelInfo(res.data);
+        console.log('res', res.data)
         navigate('/channel', { state: { data: res.data} });
       })
     } catch (error) {
@@ -44,28 +53,21 @@ export default function Lobby() {
     }
   };
 
-  const getMyChannelList = async () => {
+  const fetchGetUserInfoWhenEnterChannel = async (channelId: number) => {
     try {
-      await instance.get("/user/channel").then(res => {
-        console.log('res', res)
-        setMyChannelList(res.data)
-        // if(!res.data.channel) { 
-        //   alert("채널이 존재하지 않습니다."); 
-        //   setChannelCode("")
-        // }
-      })
+      await instance.get(`/channel/user?channel_id=${channelId}`).then(res => {
+        setChannelUserInfo(res.data);
+        Object.keys(res.data).includes("group") ? fetchGetEnterChannel(channelId) : navigate('/getUserInfo', { state: { data: channelId } });
+      });
     } catch (error) {
       console.error("오류 발생:", error);
     }
   };
 
-  const getUserInfo = async () => {
+  const fetchGetUserInfo = async () => {
     try {
       await instance.get("/user").then(res => {
-        setMyName({
-          username: res.data.user_name,
-          nickname: res.data.user_nickname,
-        });
+        setMyName(res.data.user_name);
       });
     } catch (error) {
       console.error("오류 발생:", error);
@@ -73,14 +75,14 @@ export default function Lobby() {
   };
 
   useEffect(() => {
-    getUserInfo();
-    getMyChannelList();
-  }, [])
+    fetchGetUserInfo();
+    fetchGetMyChannelList();
+  }, []);
 
   return (
     <div className="wrapper items-start justify-start">
       <div className="w-full flex justify-between items-center">
-        <p className="text-[#3A4D39]"><em className="font-bold text-3xl">{myName.nickname || myName.username}</em> 님</p>
+        <p className="text-[#3A4D39]"><em className="font-bold text-3xl">{myName}</em> 님</p>
         <button className="button1 before:content-plusIcon before:inline-block before:w-6 before:align-middle" type="button" onClick={() => navigate("/channel/create")}>
           채널 생성
         </button>
@@ -96,7 +98,7 @@ export default function Lobby() {
             onChange={(event:ChangeEvent<HTMLInputElement>) => setChannelCode(event.target.value)}
             autoFocus
           />
-          <button className="button flex-none" type="button" onClick={postJoinChannel} disabled={!channelCode}>가입</button>
+          <button className="button flex-none" type="button" onClick={fetchPostJoinChannel} disabled={!channelCode}>가입</button>
         </div>
       </div>
       
@@ -106,11 +108,11 @@ export default function Lobby() {
           {myChannelList?.map((item) => 
             <div key={item.channel_id} className="flex justify-between items-center gap-2">
               <span className="flex-auto">{item.channel_name}</span>
-              <button className="button flex-none" type="button" onClick={() => getEnterChannel(item.channel_id)}>채널 입장</button>
+              <button className="button flex-none" type="button" onClick={() => fetchGetUserInfoWhenEnterChannel(item.channel_id)}>채널 입장</button>
             </div>
           )}
         </div>
       }
     </div>
   );
-}
+};

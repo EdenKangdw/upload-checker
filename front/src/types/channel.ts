@@ -23,6 +23,15 @@ export interface GroupList {
   created_at: string;
 }
 
+export interface UserInfoForChannel {
+  channel_id: number;
+  isCreator: boolean;
+  isManager: boolean;
+  user_id: number;
+  user_nickname: string;
+  group?: {id: number, name: string, type: "MEMBER"}
+}
+
 export interface getCheckPeriodList {
   checks: string[]; // 체크한 사람 이름 배열
   date: string;
@@ -31,6 +40,7 @@ export interface getCheckPeriodList {
 export interface getMyCheckList {
   check: string; // O or X
   date: string;
+  week_day: "화" | "수" | "목" | "금" | "토";
 }
 
 export interface UserInfo {
@@ -39,14 +49,6 @@ export interface UserInfo {
   user_nickname: string | null; // 설정한 닉네임
   updated_at: string;
   created_at: string;
-  groups?: {
-    created_at: string;
-    group_id: number;
-    id: number;
-    type: "CREATOR" | "MANAGER" | "MEMBER";
-    updated_at: string;
-    user_id: number;
-  }[];
 }
 
 
