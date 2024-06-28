@@ -208,10 +208,9 @@ async def get_check_channel_api(
 
     # get user's group
     user_group_list = get_group_users(session, user.user_id)
-    print(user_group_list[0])
     permission_group_list = list(filter(lambda x: x.type != "MEMBER", user_group_list))
-    print(permission_group_list[0])
-    print("@@@@@@@")
+    if not permission_group_list:
+        return JSONResponse({"error": "유저 권한 없음"}, status_code=500)
     permission_group_ids = [x.group_id for x in permission_group_list]
 
     # get checks
