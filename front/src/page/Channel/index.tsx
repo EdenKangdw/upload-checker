@@ -236,7 +236,7 @@ export default function ChannelRoom() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative bg-white rounded-lg shadow-lg px-6 pt-12 pb-6 max-w-lg w-full">
             <p>{openChecksModal.date.slice(5)} {openChecksModal.checks.length}명</p>
-            <div>{openChecksModal.checks.map(check => <span>{check}, </span>)}</div>
+            <div className="mt-2">{openChecksModal.checks.map(check => <span>{check}, </span>)}</div>
             <button 
               type="button"
               className="absolute top-2 right-2 w-8"
@@ -247,9 +247,12 @@ export default function ChannelRoom() {
             <button
               type="button"
               className="button1 absolute top-2 right-12"
-              onClick={() => navigator.clipboard.writeText(openChecksModal.checks.join())}
+              onClick={() => {
+                navigator.clipboard.writeText(openChecksModal.checks.join());
+                alert('복사되었습니다.');
+              }}
             >
-              클립보드
+              복사
             </button>
           </div>
         </div>
