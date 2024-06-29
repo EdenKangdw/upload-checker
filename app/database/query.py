@@ -361,7 +361,7 @@ def get_channel_checks(session, channel_id: int, checked_at=None) -> User:
     try:
         if checked_at is not None:
             data = (
-                session.query(Check.check_user_id, User.user_name)
+                session.query(Check.check_user_id, User.user_name, User.user_nickname)
                 .join(User, Check.check_user_id == User.user_id)
                 .filter(Check.check_channel_id == channel_id)
                 .filter(cast(Check.checked_at, Date) == checked_at)
