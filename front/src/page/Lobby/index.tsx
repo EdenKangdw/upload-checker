@@ -102,17 +102,19 @@ export default function Lobby() {
         </div>
       </div>
       
-      {myChannelList.length > 0 && 
-        <div className="mt-8 w-full">
-          <p className="title">내 채널 목록</p>
-          {myChannelList?.map((item) => 
-            <div key={item.channel_id} className="flex justify-between items-center gap-2">
-              <span className="flex-auto">{item.channel_name}</span>
-              <button className="button flex-none" type="button" onClick={() => fetchGetUserInfoWhenEnterChannel(item.channel_id)}>채널 입장</button>
-            </div>
-          )}
-        </div>
-      }
+      <div className="w-full mt-8">
+        <p className="title">내 채널 목록</p>
+        {myChannelList.length > 0 && 
+          <ul>
+            {myChannelList?.map((item) => 
+              <li key={item.channel_id} className="flex justify-between items-center gap-2 mt-2">
+                <span className="flex-auto">{item.channel_name}</span>
+                <button className="button flex-none" type="button" onClick={() => fetchGetUserInfoWhenEnterChannel(item.channel_id)}>채널 입장</button>
+              </li>
+            )}
+          </ul>
+        }
+      </div>
     </div>
   );
 };
