@@ -90,7 +90,7 @@ def get_groups(session: Session):
 
 def get_group_users(session: Session, user_id):
     try:
-        return session.query(GroupUser).filter(User.user_id == user_id).all()
+        return session.query(GroupUser).filter(GroupUser.user_id == user_id).all()
     except Exception as e:
         print(e)
         return None
