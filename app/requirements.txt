@@ -9,3 +9,5 @@ python-jose[cryptography]
 passlib
 aiofiles
 jinja2==3.0
+pandas
+openpyxl
