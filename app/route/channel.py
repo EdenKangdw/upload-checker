@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
+from io import BytesIO
 from fastapi import APIRouter, Body, Depends, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import HTTPBearer
 from api_model.model import ChannelModel
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from database.query import (
     add_channel,
     add_user_channel,
     get_channel,
+    get_channel_check_download,
     get_channel_checks,
     get_channel_group_checks,
     get_channel_group_user,
@@ -21,6 +23,7 @@ from database.query import (
 from database.schema import Channel, GroupUser, UserChannel
 from util.auth import get_current_user
 from database.conn import db
+import pandas as pd
 
 oauth2_scheme = HTTPBearer()
 app = APIRouter()
@@ -293,3 +296,84 @@ async def get_channel_api(
     channel = await get_channel(session, channel_id)
 
     return dict(channel=channel)
+
+
+@app.get("/check/download")
+async def download_channel_check(
+    channel_id: int = Query(description="채널 아이디", default=1),
+    token: HTTPBearer = Depends(oauth2_scheme),
+    session: Session = Depends(db.session),
+):
+    # user check
+    user = await get_current_user(token)
+
+    # get check list
+    channel_checks = get_channel_check_download(session, channel_id)
+
+    # get prayer date list
+    prayer_check_date_list = prayer_check_dates()
+
+    # 데이터를 데이터프레임으로 변환 - 개인별 데이터
+    data = {}
+    for check in channel_checks:
+        user_name = check.user_nickname if check.user_nickname else check.user_name
+        if user_name not in data:
+            data[user_name] = {"group_name": check.group_name}
+        check_date_str = check.checked_at.strftime("%Y-%m-%d")
+        if not data[user_name].get(check_date_str):
+            if check_date_str in prayer_check_date_list:
+                for date in prayer_check_date_list:
+                    data[user_name][date] = "X"  # 기본값은 'X'
+        if check_date_str in prayer_check_date_list:
+            data[user_name][check_date_str] = "O"
+
+    df_data = []
+    for user_name, values in data.items():
+        row = {"이름": user_name, "팀": values["group_name"]}
+        row.update({date: values[date] for date in prayer_check_date_list})
+        df_data.append(row)
+
+    df = pd.DataFrame(df_data)
+    df = df.sort_values(by="이름", ascending=True)
+
+    # 데이터를 데이터프레임으로 변환 - 그룹별 데이터
+    team_data = {}
+    for check in channel_checks:
+        if check.group_name not in team_data:
+            team_data[check.group_name] = {}
+        check_date_str = check.checked_at.strftime("%Y-%m-%d")
+        if check_date_str not in team_data[check.group_name]:
+            if check_date_str in prayer_check_date_list:
+                for date in prayer_check_date_list:
+                    team_data[check.group_name][date] = 0
+        if check_date_str in prayer_check_date_list:
+            team_data[check.group_name][check_date_str] += 1
+    print(team_data)
+
+    df_group_data = []
+    for group_name, values in team_data.items():
+        row = {"팀": group_name}
+        row.update({date: values[date] for date in prayer_check_date_list})
+        df_group_data.append(row)
+
+    df_g = pd.DataFrame(df_group_data)
+    df_g = df_g.sort_values(by="팀", ascending=True)
+
+    # 엑셀 파일로 변환
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="개인별 현황")
+        df_g.to_excel(writer, index=False, sheet_name="팀별 현황")
+    buffer.seek(0)
+
+    # UTF-8로 파일 이름 인코딩
+    filename = "check_result.xlsx"
+    headers = {
+        "Content-Disposition": f"attachment; filename*=UTF-8''{filename.encode('utf-8').decode('latin-1')}"
+    }
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )

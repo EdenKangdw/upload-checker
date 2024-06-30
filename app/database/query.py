@@ -381,6 +381,25 @@ def get_channel_checks(session, channel_id: int, checked_at=None) -> User:
         return None
 
 
+def get_channel_check_download(session, channel_id):
+    try:
+        data = (
+            session.query(
+                Check.checked_at, User.user_nickname, User.user_name, Group.group_name
+            )
+            .join(User, User.user_id == Check.check_user_id)
+            .join(GroupUser, GroupUser.user_id == Check.check_user_id)
+            .join(Group, Group.group_id == GroupUser.group_id)
+            .filter(Check.check_channel_id == channel_id)
+            .all()
+        )
+        return data
+
+    except Exception as e:
+        print(e)
+        return None
+
+
 def get_user_checks_channel(
     session, channel_id, user_id, start_date_str, end_date_str
 ) -> Check:
