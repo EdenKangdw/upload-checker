@@ -12,7 +12,7 @@ DB_URL = f"mysql+pymysql://{config.MYSQL_USER}:{config.MYSQL_PASSWORD}@{config.M
 
 class engineconn:
     def __init__(self):
-        self.engine = create_engine(DB_URL)
+        self.engine = create_engine(DB_URL, pool_pre_ping=True)
 
     def sessionmaker(self):
         Session = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
