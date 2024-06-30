@@ -331,7 +331,9 @@ def get_channel_group_checks(session, channel_id, checked_at, group_ids):
         if checked_at is not None:
             result = (
                 session.query(
-                    Check.check_user_id, func.max(User.user_name).label("user_name")
+                    Check.check_user_id,
+                    func.max(User.user_nickname).label("user_nickname"),
+                    func.max(User.user_name).label("user_name"),
                 )
                 .join(User, Check.check_user_id == User.user_id)
                 .join(GroupUser, Check.check_user_id == GroupUser.user_id)
@@ -346,6 +348,7 @@ def get_channel_group_checks(session, channel_id, checked_at, group_ids):
                 session.query(
                     Check.check_user_id,
                     func.max(User.user_nickname).label("user_nickname"),
+                    func.max(User.user_name).label("user_name"),
                 )
                 .join(User, Check.check_user_id == User.user_id)
                 .join(GroupUser, Check.check_user_id == GroupUser.user_id)
@@ -355,12 +358,12 @@ def get_channel_group_checks(session, channel_id, checked_at, group_ids):
                 .all()
             )
         channel_group_checks = []
-        for user_id, user_name in result:
+        for user_id, user_nickname, user_name in result:
             channel_group_checks.append(
                 {
                     "check_user_id": user_id,
                     "user_name": user_name,
-                    "user_nickname": user_name,
+                    "user_nickname": user_nickname,
                 }
             )
         return channel_group_checks
