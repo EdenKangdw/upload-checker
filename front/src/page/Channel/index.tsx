@@ -234,26 +234,31 @@ export default function ChannelRoom() {
 
       {openChecksModal.open && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative bg-white rounded-lg shadow-lg px-6 pt-12 pb-6 max-w-lg w-full">
-            <p>{openChecksModal.date.slice(5)} {openChecksModal.checks.length}명</p>
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+            <div className="flex items-center justify-between">
+              <p className="title">{openChecksModal.date.slice(5)}: {openChecksModal.checks.length}명</p>
+              <div>
+                <button
+                  type="button"
+                  className="button1 align-middle"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${openChecksModal.date.slice(5)}: ${openChecksModal.checks.length}명
+${openChecksModal.checks.join()}`);
+                    alert('복사되었습니다.');
+                  }}
+                >
+                  복사
+                </button>
+                <button 
+                  type="button"
+                  className="w-8 align-middle"
+                  onClick={() => setOpenChecksModal({open: false, date:"", checks: []})}
+                >
+                  <img src={CloseIcon} alt="닫기" />
+                </button>
+              </div>
+            </div>
             <div className="mt-2">{openChecksModal.checks.map(check => <span>{check}, </span>)}</div>
-            <button 
-              type="button"
-              className="absolute top-2 right-2 w-8"
-              onClick={() => setOpenChecksModal({open: false, date:"", checks: []})}
-            >
-              <img src={CloseIcon} alt="닫기" />
-            </button>
-            <button
-              type="button"
-              className="button1 absolute top-2 right-12"
-              onClick={() => {
-                navigator.clipboard.writeText(openChecksModal.checks.join());
-                alert('복사되었습니다.');
-              }}
-            >
-              복사
-            </button>
           </div>
         </div>
       )}
