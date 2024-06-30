@@ -13,15 +13,16 @@ class Config:
     # RELEASE VER.
     MYSQL_PORT = 32072
     MYSQL_HOST = "svc.sel5.cloudtype.app"
-    # KAKAO_REDIRECT_URI = "https://port-0-upload-checker-server-wr4oe2alqv1116q.sel5.cloudtype.app/oauth/kakao/redirect"
-    # CLIENT_REDIRECT_URL = (
-    #     "https://web-upload-checker-front-wr4oe2alqv1116q.sel5.cloudtype.app/getToken"
+    KAKAO_REDIRECT_URI = "https://port-0-upload-checker-server-wr4oe2alqv1116q.sel5.cloudtype.app/oauth/kakao/redirect"
+    CLIENT_REDIRECT_URL = (
+        "https://web-upload-checker-front-wr4oe2alqv1116q.sel5.cloudtype.app/getToken"
+    )
 
     # STAGE VER.
     # MYSQL_PORT = 30233
     # MYSQL_HOST = "svc.sel5.cloudtype.app"
-    KAKAO_REDIRECT_URI = "https://port-0-upload-checker-wr4oe2alqv1116q.sel5.cloudtype.app/oauth/kakao/redirect"
-    CLIENT_REDIRECT_URL = "https://web-upload-checker-front-test-wr4oe2alqv1116q.sel5.cloudtype.app/getToken"
+    # KAKAO_REDIRECT_URI = "https://port-0-upload-checker-wr4oe2alqv1116q.sel5.cloudtype.app/oauth/kakao/redirect"
+    # CLIENT_REDIRECT_URL = "https://web-upload-checker-front-test-wr4oe2alqv1116q.sel5.cloudtype.app/getToken"
 
     # LOCAL VER.
     # MYSQL_PORT = 3306
